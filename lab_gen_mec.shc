@@ -1,0 +1,769 @@
+/*
+ ================================================================
+                           Homunculus S
+ ================================================================
+ ----------------------------------------------------------------
+                               AUTOR
+                              QuodDG
+ ----------------------------------------------------------------
+                              VERSÕES
+                      1.0 Criação [QuodDG]
+ ----------------------------------------------------------------
+ ================================================================
+*/
+
+//======================
+//== Iniciadores
+//======================
+
+geffen_in,110,171,0	script	Carol#gt0	1_F_ORIENT_01,{
+	.@npc_name$ = "^FF8B00[= Carol =]^000000";
+	if(Class != Job_Genetic && Class != Job_Genetic_T){
+		mes .@npc_name$;
+		mes "Olá jovem Herói!";
+		mes "Seja bem vindo à hospedagem.";
+		mes "Descanse o tempo que precisar.";
+		close;
+	}
+	mes .@npc_name$;
+	mes "Olá jovem Geneticista.";
+	mes "Em que posso lhe ajudar?";
+	next;
+	.@menu$ = "Quero descansar:";
+	if(qdo_homun_s < 1){
+		.@menu$ += "Me fale sobre a Mutanção de Homunculus";
+	}
+	else{
+		.@menu$ += "Preciso ir ao Laboratório";
+	}
+	if(select(.@menu$) == 1){
+		mes .@npc_name$;
+		mes "Descanse o tempo que precisar.";
+		close;
+	}
+	if(qdo_homun_s < 1){
+		mes .@npc_name$;
+		mes "Se você está interessado nesse assunto, eu hospedei um Cientista há poucos dias que estava falando sobre isso.";
+		next;
+		mes .@npc_name$;
+		mes "Se quiser posso lhe levar até ele.";
+		next;
+		if(select("Agora não:Claro") == 1){
+			mes .@npc_name$;
+			mes "Tudo bem...";
+			mes "Se mudar de ideia é só voltar aqui.";
+			close;
+		}
+	}
+	mes .@npc_name$;
+	mes "Tubo bem!";
+	mes "Até logo.";
+	close2;
+	warp("job3_gen01", 45, 49);
+	end;
+}
+
+geffen_in,61,173,5	script	Ferreiro Avançado#gt0	4_M_DWARF,{
+	.@npc_name$ = "^FF8B00[= Ferreiro Avançado =]^000000";
+	if(Class == Job_Blacksmith || Class == Job_Whitesmith || Class == Job_Job_Mechanic || Class == Job_Mechanic_T){
+		mes .@npc_name$;
+		mes "Olha só o que temos aqui...";
+		mes ( Sex ? "...um companheiro Ferreiro!" : "...uma companheira Ferreira!");
+		if(qdo_adv_smith == 0){
+			mes "O que quer de mim?";
+			next;
+			if(select("Nada:Me fale sobre " + getitemname(Oridecon_Hammer_)) == 1){
+				mes .@npc_name$;
+				mes "Então não fique me encarando.";
+				close;
+			}
+			mes .@npc_name$;
+			mes "Hmm...";
+			mes "Eu conheci um inventor que estava procurando umas peças e metais um dia desses.";
+			next;
+			mes .@npc_name$;
+			mes "Ele me falou de um projeto que estava desenvolvendo. Algo sobre uma nova forma de forjar armas.";
+			next;
+			mes .@npc_name$;
+			mes "Segundo ele, algumas armas de nível 4 poderiam ser forjadas com esse item que ele estava desenvolvendo.";
+			next;
+			select("Onde ele está agora?");
+			mes .@npc_name$;
+			mes "Hmm...";
+			mes "Eu estava um pouco bêbado, mas acredito que ele estivesse hospedado neste Andar.";
+			next;
+			select("Obrigado pela informação.");
+			mes .@npc_name$;
+			mes "Não há de que.";
+			mes "Espero que ele já tenha finalizado o projeto.";
+			close2;
+			qdo_adv_smith = 1;
+			//warp("job3_gen01", 45, 49);
+			end;
+		}
+		else{
+			mes "Então, achou o inventor?";
+			next;
+			if(select("Sim:Ainda não") == 2){
+				mes .@npc_name$;
+				mes "Hmm...";
+				mes "Estranho, eu tinha quase certeza que ele estivesse hospedado neste Andar.";
+				close;
+			}
+			mes .@npc_name$;
+			mes "Interessante.";
+			mes "Ele parecia bem esperto, para um inventor bêbado.";
+			mes "Hehehehe";
+			close;
+		}
+	}else{
+		mes .@npc_name$;
+		mes "Não me atrapalhe.";
+		mes "Estou trabalhando.";
+		close;
+	}
+	//warp("job3_gen01", 72, 48);
+	end;
+}
+
+//======================
+//== Warps
+//======================
+
+job3_gen01,49,49	warp	homunculus_1	1,1,geffen_in,105,171
+job3_gen01,7,59	warp	homunculus_2	1,1,job3_gen01,72,52
+job3_gen01,71,56	warp	homunculus_3	1,1,job3_gen01,11,60
+
+//======================
+//== NPCs
+//======================
+
+job3_gen01,12,44,6	script	Cientista#labin	4_M_SCIENCE,{
+	.@npc_name$ = "^FF8B00[= Cientista =]^000000";
+	if(Class != Job_Genetic && Class != Job_Genetic_T){
+		mes .@npc_name$;
+		mes "Não me atrapalhe...";
+		mes "...Estou ocupado.";
+		close;
+	}
+	if(qdo_homun_s < 1){
+		mes .@npc_name$;
+		mes "Olá jovem Geneticista.";
+		mes "O que lhe traz até meu laboratório?";
+		next;
+		if(select("Nada.:Fazer Metamorfose.") == 1){
+			mes .@npc_name$;
+			mes "Tudo bem...";
+			mes "Mas não toque em nada!";
+			close;
+		}
+		mes .@npc_name$;
+		mes "Hmmm...";
+		mes "Deixe-me analisar seu Homunculus...";
+		next;
+		mes .@npc_name$;
+		mes "...";
+		next;
+		mes .@npc_name$;
+		mes "...";
+		mes "....";
+		next;
+		mes .@npc_name$;
+		mes "...";
+		mes "....";
+		mes ".....";
+		next;
+		mes .@npc_name$;
+		mes "Olha só!";
+		mes "Até que você cuida bem dele.";
+		mes "Muito bem, eu até evoluiria ele de graça para você...";
+		next;
+		mes .@npc_name$;
+		mes "Mas infelizmente os meus Tanques de Mutação não estão operando.";
+		mes "Uma das peças do reator dele está danificada.";
+		next;
+		mes .@npc_name$;
+		mes "No entanto, podemos fazer um trato.";
+		mes "Se me trouxer um " + getitemname(Cooling_Device) + " poderei fazer com que ele volte a funcionar sem riscos.";
+		next;
+		if(select("Não sei onde encontrar:Tudo bem") == 1){
+			mes .@npc_name$;
+			mes "Essa peça é utilizada pelos Mecânicos para refrigerar o reator de seus M.E.C.H.A.s.";
+			mes "Portanto, acredito que seja fácil encontrar um vendedor que possa lhe vender um, no Andar 13.";
+			next;
+		}
+		mes .@npc_name$;
+		mes "Ficarei aguardando seu retorno.";
+		mes "Quando conseguir o " + getitemname(Cooling_Device) + ", adicione-o em uma das Câmaras de Mutação.";
+		close2;
+		qdo_homun_s = 1;
+		end;
+	}
+	else if(qdo_homun_s == 1){
+		mes .@npc_name$;
+		mes "Então...";
+		mes "Você conseguiu o " + getitemname(Cooling_Device) + "?";
+		next;
+		if(select("Não:Sim") == 1){
+			mes .@npc_name$;
+			mes "Essa peça é utilizada pelos Mecânicos para refrigerar o reator de seus M.E.C.H.A.s.";
+			mes "Portanto, acredito que seja fácil encontrar um vendedor que possa lhe vender um, no Andar 13.";
+			close;
+		}
+		mes .@npc_name$;
+		mes "Que bom!";
+		mes "Adicione-o à uma das Câmaras de Mutação para que possamos usá-las.";
+		close;
+	}
+	else if(qdo_homun_s == 2){
+		mes .@npc_name$;
+		mes "Muito bom!";
+		mes "Agora poderemos ralizar a mutanção do seu Homunculus.";
+		next;
+		emotion(e_omg);
+		mes .@npc_name$;
+		mes "OMG!";
+		mes "Acho que perdi minha chave de acesso...";
+		next;
+		mes .@npc_name$;
+		mes "Me ajude a procurar!";
+		mes "Deve estar em algum lugar nesta sala.";
+		close2;
+		qdo_homun_s = 3;
+		end;
+	}
+	else if(qdo_homun_s <= 4){
+		if(countitem(Key_Green) < 1){
+			mes .@npc_name$;
+			mes "Continue procurando...";
+			mes "Deve estar em algum lugar por aqui.";
+			close;
+		}
+		emotion(e_no1);
+		mes .@npc_name$;
+		mes "Ufa! Ainda bem que você achou...";
+		next;
+		mes .@npc_name$;
+		mes "Muito bem...";
+		mes "Agora você terá acesso à Câmara de Mutação.";
+		mes "Vá até lá e tente realizar a Mutação.";
+		close2;
+		delitem(Key_Green, countitem(Key_Green));
+		qdo_homun_s = 5;
+		end;
+	}
+	else{
+		mes .@npc_name$;
+		mes "Olá de novo!";
+		mes "No momento não posso lhe dar atenção, estou no meio de uma pesquisa muito importante.";
+		next;
+		mes .@npc_name$;
+		mes "Se precisar de algo, pode usar minha mesa de trabalho ou os Tanques de Mutação.";
+		close;
+	}
+}
+
+geffen_in,142,140,2	script	Inventor#gt0	4_M_TUFFOLD,{
+	.@npc_name$ = "^FF8B00[= Inventor =]^000000";
+	if(qdo_adv_smith == 0){
+		mes .@npc_name$;
+		mes "O que está fazendo aqui?";
+		mes "Caia fora do meu quarto imediatamente!";
+		close2;
+		warp("geffen_in", 105, 171);
+		end;
+	}
+	else if(qdo_adv_smith == 1){
+		mes .@npc_name$;
+		mes "Quem é você?";
+		next;
+		select(strcharinfo(PC_NAME));
+		mes .@npc_name$;
+		mes "Olá, ^0075E9" + strcharinfo(PC_NAME) + "^000000.";
+		mes "O que deseja?";
+		mes "E porque está no meu quarto?";
+		next;
+		if(select("Nada:Me fale sobre " + getitemname(Oridecon_Hammer_)) == 1){
+			mes .@npc_name$;
+			mes "Então saia do meu quarto.";
+			close2;
+			warp("geffen_in", 105, 171);
+			end;
+		}
+		mes .@npc_name$;
+		mes "Ora ora!";
+		mes "Então eu devo ter falado mais do que deveria, na outra noite.";
+		mes "Hahahaha";
+		next;
+		mes .@npc_name$;
+		mes "Muito bem.";
+		mes "Se quiser que eu lhe conte sobre isso, terá que me ajudar numa coisinha...";
+		next;
+		if(select("Depois:Em que?") == 1){
+			mes .@npc_name$;
+			mes "Tudo bem.";
+			mes "Parece que não tem tanto interesse assim no meu projeto.";
+			close;
+		}
+		mes .@npc_name$;
+		mes "Eu vim até aqui para procurar alguns minerais.";
+		mes "Mas parece que não são tão fáceis de encontrar assim.";
+		next;
+		mes .@npc_name$;
+		mes "Se você me trouxer 100x ^0075E9" + getitemname(Oridecon) + "^000000 eu então te mostrarei meu projeto.";
+		next;
+		if(select("É muita coisa:Combinado!") == 1){
+			mes .@npc_name$;
+			mes "Tudo bem.";
+			mes "Parece que não tem tanto interesse assim no meu projeto.";
+			close;
+		}
+		mes .@npc_name$;
+		mes "Você é ambicioso, heim!?";
+		mes "Vou aguardar, então.";
+		close2;
+		qdo_adv_smith = 2;
+		end;
+	}
+	else if(qdo_adv_smith == 2){
+		mes .@npc_name$;
+		mes "Olha só quem voltou!";
+		mes "Então, conseguiu?";
+		next;
+		if(select("Ainda não:Sim") == 1){
+			mes .@npc_name$;
+			mes "Tudo bem.";
+			mes "Vou aguardar, então.";
+			mes "Quando conseguir sabe onde me encontrar.";
+			close;
+		}
+		if(countitem(Oridecon) < 100){
+			mes .@npc_name$;
+			mes "Hahaha";
+			mes "Sua ambição não faz milagres " + (Sex ? "rapaz." : "moça.");
+			mes "Você não tem 100x ^0075E9" + getitemname(Oridecon) + "^000000.";
+			close;
+		}		
+		mes .@npc_name$;
+		mes "Olha só...";
+		mes "Você realmente conseguiu. Estou impressionado.";
+		next;
+		mes .@npc_name$;
+		mes "Volte aqui em alguns minutos.";
+		mes "Vou arrumar minhas malas e iremos ao meu laboratório.";
+		close2;
+		delitem(Oridecon, 100);
+		qdo_adv_smith = 3;
+		end;
+	}
+	else if(qdo_adv_smith == 3){
+		mes .@npc_name$;
+		mes "Você está " + (Sex ? "pronto?" : "pronta?");
+		next;
+		if(select("Ainda não:Sim") == 1){
+			mes .@npc_name$;
+			mes "Tudo bem.";
+			mes "Vou aguardar, então.";
+			close;
+		}
+		mes .@npc_name$;
+		mes "Então vamos para o laboratório.";
+		close2;
+	}
+	else{
+		mes .@npc_name$;
+		mes "Olá, ^0075E9" + strcharinfo(PC_NAME) + "^000000.";
+		mes "É um prazer revê-l" + (Sex ? "o!" : "a!");
+		mes "O que deseja?";
+		next;
+		if(select("Nada:Preciso ir ao Laboratório") == 1){
+			mes .@npc_name$;
+			mes "Ok.";
+			mes "Passar bem!";
+			close;
+		}
+		mes .@npc_name$;
+		mes "Então vamos para o laboratório.";
+		close2;
+	}
+	warp("job3_gen01", 72, 48);
+	end;
+}
+
+job3_gen01,93,51,4	script	Inventor#labin	4_M_TUFFOLD,{
+	.@npc_name$ = "^FF8B00[= Inventor =]^000000";
+	if(Class == Job_Blacksmith || Class == Job_Whitesmith || Class == Job_Job_Mechanic || Class == Job_Mechanic_T){
+		if(qdo_adv_smith < 3){
+			mes .@npc_name$;
+			mes "O que está fazendo aqui?!";
+			mes "Não tenho tempo para excursões escolares.";
+			close2;
+			warp("geffen_in", 105, 171);
+			end;
+		}
+		else if(qdo_adv_smith == 3){
+			mes .@npc_name$;
+			mes "Muito bem.";
+			mes "Para começar, você terá que ler minha pesquisa para poder entender o processo.";
+			next;
+			mes .@npc_name$;
+			mes "O meu Livro de Invenções está em algum lugar deste andar.";
+			mes "Não lembro bem onde deixei, então encontre e leia.";
+			close2;
+			qdo_adv_smith = 4;
+			end;
+		}
+		else if(qdo_adv_smith == 4){
+			mes .@npc_name$;
+			mes "Eu tenho certeza que deixei em algum lugar por aqui...";
+			close;
+		}
+		else if(qdo_adv_smith == 5){
+			mes .@npc_name$;
+			mes "Eu sabia que tinha deixado por aqui...";
+			mes "Então, o que achou?";
+			next;
+			select("Impressionando!");
+			mes .@npc_name$;
+			mes "Hehehe";
+			mes "Não gosto de me gabar, mas...";
+			mes "...eu sou um gênio!";
+			emotion(e_heh);
+			next;
+			mes .@npc_name$;
+			mes "Agora que conhece minha pesquisa, veja se consegue fabricar um ^0075E9" + getitemname(Oridecon_Hammer_) + "^000000.";
+			next;
+			mes .@npc_name$;
+			mes "Fique à vontade para usar minha mesa de trabalho.";
+			mes "E não desanime, se não conseguir de primeira.";
+			next;
+			mes .@npc_name$;
+			mes "Para construir um ^0075E9" + getitemname(Oridecon_Hammer_) + "^000000 você irá precisar de alguns ^0075E9" + getitemname(Oridecon) + "^000000 que coletou.";
+			close2;
+			getitem(Oridecon, 50);
+			qdo_adv_smith = 6;
+			end;
+		}
+		else if(qdo_adv_smith == 6){
+			mes .@npc_name$;
+			mes "Fique à vontade para usar minha mesa de trabalho.";
+			mes "E não desanime, se não conseguir de primeira.";
+			close;
+		}
+		else if(qdo_adv_smith == 7){
+			if(countitem(Oridecon_Hammer_) < 1){
+				qdo_adv_smith = 6;
+				qdo_adv_smith_brate = 1;
+				mes .@npc_name$;
+				mes "Parece que você perdeu o ^0075E9" + getitemname(Oridecon_Hammer_) + "^000000 que criou.";
+				mes "Porque não tenta criar outro?!";
+				close;
+			}
+			mes .@npc_name$;
+			mes "Estou impressionado.";
+			mes "Você se saiu muito bem.";
+			mes "Tem um dom para fabricar coisas.";
+			next;
+			mes .@npc_name$;
+			mes "Agora que conhece todo o processo você poderá vir aqui sempre que precisar.";
+			next;
+			mes .@npc_name$;
+			mes "Minha mesa estará sempre à sua disposição.";
+			mes "Mais um vez obrigado por me ajudar com os materiais.";
+			close2;
+			qdo_adv_smith = 8;
+			end;
+		}
+		else{
+			mes .@npc_name$;
+			mes "Olá, ^0075E9" + strcharinfo(PC_NAME) + "^000000.";
+			mes "É um prazer revê-l" + (Sex ? "o!" : "a!");
+			mes "Minha mesa estará sempre à sua disposição.";
+			close;
+		}
+	}
+	else{
+		mes .@npc_name$;
+		mes "Olá!";
+		mes "Acredito que esteja procurando o Cientista lá em baixo.";
+		mes "Hehe";
+		close;
+	}
+	close;
+}
+
+job3_gen01,6,50,4	script	Mesa de Trabalho#1lab	HIDDEN_NPC,{
+	//.@npc_name$ = "^FF8B00[= Mesa de Trabalho =]^000000";
+	if(qdo_homun_s == 3 && countitem(Key_Green) < 1){		
+		getitem(Key_Green, 1);
+		qdo_homun_s = 4;
+	}
+	end;
+}
+
+job3_gen01,87,52,4	script	Mesa de Trabalho#2lab	HIDDEN_NPC,{
+	.@npc_name$ = "^FF8B00[= Mesa de Trabalho =]^000000";
+	if(qdo_adv_smith == 6){
+		if(countitem(Oridecon) < 1){
+			mes .@npc_name$;
+			mes "Você não tem material suficiente.";
+			mes "Necessário: 1x ^0075E9" + getitemname(Oridecon) + "^000000";
+			close;
+		}
+		if(qdo_adv_smith_brate == 0){
+			qdo_adv_smith_brate++;
+		}
+		mes .@npc_name$;
+		mes "Tentativa Nº " + qdo_adv_smith_brate + ".";
+		mes "Necessário: 1x ^0075E9" + getitemname(Oridecon) + "^000000";
+		next;
+		if(select("Parar:Continuar") == 1){
+			mes .@npc_name$;
+			mes "Processo encerrado.";
+			close;
+		}
+		delitem(Oridecon, 1);
+		if(rand(1, 100) <= qdo_adv_smith_brate || qdo_adv_smith_brate == 50){
+			mes .@npc_name$;
+			mes "Processo concluído com sucesso.";
+			mes "Você obteve 1x ^0075E9" + getitemname(Oridecon_Hammer_) + "^000000.";
+			specialeffect(EF_REFINEOK);
+			qdo_adv_smith = 7;
+			getitem(Oridecon_Hammer_, 1);
+			close;
+		}
+		else{
+			mes .@npc_name$;
+			mes "Falha na tentativa de criar um ^0075E9" + getitemname(Oridecon_Hammer_) + "^000000.";
+			specialeffect(EF_REFINEFAIL);
+			qdo_adv_smith_brate++;
+			close;
+		}
+	}
+	else if(qdo_adv_smith == 8){
+		if(countitem(Oridecon) < 1){
+			mes .@npc_name$;
+			mes "Você não tem material suficiente.";
+			mes "Necessário: 1x ^0075E9" + getitemname(Oridecon) + "^000000";
+			close;
+		}
+		.@rate = 5000 + (JobLevel * 20) + (readparam(bDex) * 10) + (readparam(bLuk) * 10);
+		.@rate += getskilllv(BS_WEAPONRESEARCH) * 100 + getskilllv(BS_ORIDEOCON) * 100;
+		.@rate += (qdo_adv_smith_brate * 10 * getbattleflag("weapon_produce_rate") / 100);
+		if(.@rate > 10000){
+			.@rate = 10000;
+		}
+		mes .@npc_name$;
+		mes "Item: ^0075E9" + getitemname(Oridecon_Hammer_) + "^000000.";
+		mes "Necessário: 1x ^0075E9" + getitemname(Oridecon) + "^000000.";
+		mes "Chance de sucesso: [ ^0075E9" + (.@rate / 100) + "%^000000 ].";
+		next;
+		select("Continuar");
+		delitem(Oridecon, 1);
+		if(rand(1, 10000) <= .@rate){
+			mes .@npc_name$;
+			mes "Processo concluído com sucesso.";
+			mes "Você obteve 1x ^0075E9" + getitemname(Oridecon_Hammer_) + "^000000.";
+			specialeffect(EF_REFINEOK);
+			getitem(Oridecon_Hammer_, 1);
+			close;
+		}
+		else{
+			mes .@npc_name$;
+			mes "Falha na tentativa de criar um ^0075E9" + getitemname(Oridecon_Hammer_) + "^000000.";
+			specialeffect(EF_REFINEFAIL);
+			close;
+		}
+	}
+	end;
+}
+
+job3_gen01,84,45,4	script	Mesa de Trabalho#3lab	HIDDEN_NPC,{
+	//.@npc_name$ = "^FF8B00[= Mesa de Trabalho =]^000000";
+	
+	end;
+}
+
+job3_gen01,82,13,0	script	Livro#1lab	HIDDEN_NPC,{
+	if(qdo_adv_smith == 4){
+		specialeffect(EF_STEAL, AREA, strnpcinfo(NPC_NAME));
+		dispbottom("Você encontrou e leu o Livro de Invenções.", 0x00D2FF);
+		qdo_adv_smith = 5;
+	}
+	end;
+}
+
+job3_gen01,85,13,0	script	Livro#2lab	HIDDEN_NPC,{
+	if(qdo_adv_smith == 4){
+		dispbottom("Livro errado.", 0xFF0000);
+	}
+	end;
+}
+
+job3_gen01,82,15,0	duplicate(Livro#2lab)	Livro#3lab	HIDDEN_NPC
+job3_gen01,75,17,0	duplicate(Livro#2lab)	Livro#4lab	HIDDEN_NPC
+
+job3_gen01,21,67,4	script	Câmara de Mutação#1lab	HIDDEN_NPC,{
+	.@npc_name$ = "^FF8B00[= Câmara de Mutação =]^000000";
+	if(qdo_homun_s < 1){
+		mes .@npc_name$;
+		mes "^FF0000**Câmara com mau funcionamento**^000000";
+		close;
+	}
+	else if(qdo_homun_s == 1){
+		mes .@npc_name$;
+		mes "^FF0000**Câmara com mau funcionamento**^000000";
+		next;
+		if(select("Fechar menu:Realizar reparo") == 1){
+			mes .@npc_name$;
+			mes "^FF0000**Fechando menu**^000000";
+			close;
+		}
+		if(countitem(Cooling_Device) < 1){
+			mes .@npc_name$;
+			mes "^FF0000**Reparo não realizado**^000000";
+			close;
+		}
+		delitem(Cooling_Device, 1);
+		qdo_homun_s = 2;
+		mes .@npc_name$;
+		mes "^4BA686**Reparo realizado com sucesso**^000000";
+		close;
+	}
+	else if(qdo_homun_s < 5){
+		mes .@npc_name$;
+		mes "^FF0000**Acesso bloqueado**^000000";
+		close;
+	}
+	else{
+		mes .@npc_name$;
+		mes "^4BA686**O que deseja fazer?**^000000";
+		next;
+		switch(select("Sair:Realizar mutação")){
+			case 2:
+				disable_items;
+				if(gethominfo(6) < 99 || (gethominfo(1) < 6009 || gethominfo(1) > 6016)){ // Not level 99+ evolved Homunculus
+					mes .@npc_name$;
+					mes "^FF0000**Homunculus não atende aos requisitos necessários**^000000";
+					close;
+				}
+				morphembryo();
+				if (countitem(Strange_Embryo) == 0)
+					getitem Strange_Embryo,1;
+				if (countitem(Strange_Embryo) > 1){
+					delitem Strange_Embryo, (countitem(Strange_Embryo) - 1);
+				}
+				dispbottom(gethominfo(3));
+				.@Homunculus = 0;
+				if(gethominfo(3) >= 91100){
+					mes .@npc_name$;
+					mes "^4BA686**Escolha o tipo de um dos tipos de Homunculus**^000000";
+					next;
+					switch(select("Eira", "Sera", "Dieter", "Bayeri", "Eleanor")){
+						case 1:
+							cutin "Mer_Eira_Card",3;
+							.@Homunculus = 6048; //MER_EIRA
+							break;
+						case 2:
+							cutin "Mer_Sera_Card",3;
+							.@Homunculus = 6050; //MER_SERA
+							break;
+						case 3:
+							cutin "Mer_Dieter_Card",3;
+							.@Homunculus = 6051; //MER_DIETER
+							break;
+						case 4:
+							cutin "Mer_Bayeri_Card",3;
+							.@Homunculus = 6049; //MER_BAYERI
+							break;
+						case 5:
+							cutin "Mer_Eleanor_Card",3;
+							.@Homunculus = 6052; //MER_ELEANOR
+							break;
+					}
+				}
+				else{
+					mes .@npc_name$;
+					mes "^4BA686**Seu Homunculus possui Intimidade abaixo de Loyal**^000000";
+					mes "^4BA686**A Mutação será aleatória**^000000";
+					next;
+				}
+				mes .@npc_name$;
+				mes "^4BA686**Continuar com o processo?**^000000";
+				next;
+				if(select("Não:Sim") == 1){
+					cutin "",255;
+					mes .@npc_name$;
+					mes "^4BA686**Processo abortado pelo usuário**^000000";
+					close;
+				}
+				cutin "",255;
+				if(.@Homunculus > 0)
+					hommutate(.@Homunculus);
+				else
+					hommutate();
+				mes .@npc_name$;
+				mes "^4BA686**Processo finalizado**^000000";
+				close2;
+				enable_items;
+				end;
+				break;
+			default:
+				mes .@npc_name$;
+				mes "^4BA686**Fechando menu**^000000";
+				close;
+				break;
+		}
+	}
+	end;
+}
+
+job3_gen01,24,67,4	duplicate(Câmara de Mutação#1lab)	Câmara de Mutação#2lab	HIDDEN_NPC
+
+//======================
+//== Functions
+//======================
+
+//[0]ID		[1]IDX	[2]card1	[3]card2	[4]card3	[5]card4	[6]refine
+function	script	QDO_F_Get_Required_items	{
+	.@specific = getarg(1);
+	.@char_id = getcharid(CHAR_ID_CHAR);
+	getinventorylist();
+	//Captura todos os itens do inventorio do personagem
+	.@count = @inventorylist_count;
+	copyarray(.@id[0], @inventorylist_id[0], .@count);
+	copyarray(.@idx[0], @inventorylist_idx[0], .@count);
+	copyarray(.@card1[0], @inventorylist_card1[0], .@count);
+	copyarray(.@card2[0], @inventorylist_card2[0], .@count);
+	copyarray(.@card3[0], @inventorylist_card3[0], .@count);
+	copyarray(.@card4[0], @inventorylist_card4[0], .@count);
+	copyarray(.@refine[0], @inventorylist_refine[0], .@count);
+	.@j = 0;
+	for(.@i = 0; .@i < .@count; .@i++){
+		//Se solicitado a busca do item específico da missão
+		//verifica se o item corresponde ao solicitado
+		if(.@specific == 1 && .@id[.@i] != $@item_req_test){
+			continue;
+		}
+		//Ignora itens que não sejam armas e
+		//que não sejam do nível requerido
+		if(getiteminfo(.@id[.@i], ITEMINFO_TYPE) != 4 || 
+			getiteminfo(.@id[.@i], ITEMINFO_WLV) != getarg(2)){
+			continue;
+		}
+		//Captura o char_id de quem forjou o item
+		.@owner_id = .@card3[.@i] + ( .@card4[.@i] << 16 );
+		//Verifica se foi forjado pelo próprio personagem
+		if(.@owner_id == .@char_id){
+			set getelementofarray(getarg(0), .@j),	.@id[.@i] + $@forge_2_delimiter$ + 
+													.@idx[.@i] + $@forge_2_delimiter$ + 
+													.@card1[.@i] + $@forge_2_delimiter$ + 
+													.@card2[.@i] + $@forge_2_delimiter$ + 
+													.@card3[.@i] + $@forge_2_delimiter$ + 
+													.@card4[.@i] + $@forge_2_delimiter$ + 
+													.@refine[.@i];
+			.@j++;
+		}
+	}
+	return .@j;
+}

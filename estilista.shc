@@ -1,0 +1,121 @@
+/* ===============================================================
+                              Estilista
+   ================================================================
+   ----------------------------------------------------------------
+                            COMPATIBILIDADE
+							   Hercules
+   ----------------------------------------------------------------
+                               DESCRIÇÃO
+                           Mudança de visual
+   ----------------------------------------------------------------
+                                VERSÕES
+                        1.0 Criação [QuodDG]
+ * ================================================================
+ */
+ 
+geffen,141,72,4	script	Estilista#gt0	2_M_DYEINGER,{
+	.@nome_npc$ = "[ Mestra das Classes ]";
+	
+	mes .@nome_npc$;
+	mes "Bem vind"+(Sex ? "o" : "a")+" ^0075E9"+strcharinfo(0)+"^000000...";
+	mes "O que deseja fazer?";
+	next;
+	switch(select("Mudar o corte de cabelo:Mudar a cor do cabelo:Mudar a cor da roupa")){
+		case 1:
+			callsub(S_CHANGE, .@nome_npc$, LOOK_HAIR, 1, 29, 500);
+			break;
+		case 2:
+			callsub(S_CHANGE, .@nome_npc$, LOOK_HAIR_COLOR, 0, 33, 500);
+			break;
+		case 3:
+			callsub(S_CHANGE, .@nome_npc$, LOOK_CLOTHES_COLOR, 1, 35, 500);
+			break;
+		/*case 4:
+			callsub(S_CHANGE, .@nome_npc$, LOOK_BODY2, 0, 1, 500);
+			break;*/
+	}
+	
+	mes .@nome_npc$;
+	mes "Espero que tenha ficado do seu agrado...";
+	close2;
+	end;
+	
+S_CHANGE:
+	.@nome_npc$ = getarg(0);
+	.@type = getarg(1);
+	.@min = getarg(2);
+	.@max = getarg(3);
+	.@price = getarg(4);
+	mes .@nome_npc$;
+	mes "Esse serviço custará " + .@price + "z!";
+	mes "Deseja continuar?";
+	next;
+	if(select("Volto depois:Sim") == 1){
+		mes .@nome_npc$;
+		mes "Tudo bem.";
+		mes "Até mais!";
+		close;
+	}
+	if(Zeny < .@price){
+		mes .@nome_npc$;
+		mes "Parece que você não tem toda essa quantia...";
+		close;
+	}
+	Zeny -= .@price;
+	mes .@nome_npc$;
+	mes "Vejamos o que posso fazer...";
+	next;
+	.@atual = getlook(.@type);
+	.@escolheu = 0;
+	.@step = .@min == 0 ? .@atual + 1 : .@atual;
+	.@maxStep = .@min == 0 ? .@max + 1 : .@max;
+	for(.@i = .@atual; .@i <= .@max; .@i++){
+		changelook(.@type, .@i);
+		mes .@nome_npc$;
+		mes "O que acha desse? (" + .@step + "/" + .@maxStep + ")";
+		next;
+		.@sair = 0;
+		switch(select("Mostre o próximo:Mostre o anterior:Sair:Quero esse!")){
+			case 1:
+				if(.@i == .@max){
+					.@i = .@min - 1;
+					.@step = 1;
+				}else{
+					.@step++;
+				}
+				continue;
+				break;
+			case 2:
+				if(.@i == .@min){
+					.@i = .@max - 1;
+					.@step = .@maxStep;
+				}else{
+					.@step--;
+					.@i -= 2;
+				}
+				continue;
+				break;
+			case 3:
+				.@sair = 1;
+				break;
+			case 4:
+				setlook(.@type, .@i);
+				.@escolheu = 1;
+				break;
+		}
+		if(.@sair == 1 || .@escolheu == 1){
+			break;
+		}
+	}
+	if(.@escolheu == 0){
+		Zeny += .@price;
+		changelook(.@type, .@atual);
+		mes .@nome_npc$;
+		mes "Isso é tudo que tenho até agora...";
+		close;
+	}
+	return;
+	
+}
+
+malaya,274,347,2	duplicate(Estilista#gt0)	Estilista#gt31	2_M_DYEINGER

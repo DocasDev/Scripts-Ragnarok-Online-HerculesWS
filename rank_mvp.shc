@@ -1,0 +1,246 @@
+/*
+ ================================================================
+                             Rank MVP
+ ================================================================
+ ----------------------------------------------------------------
+                               AUTOR
+                              QuodDG
+ ----------------------------------------------------------------
+                              VERSÕES
+                      1.0 Criação [QuodDG]
+ ----------------------------------------------------------------
+ log_mvpdrop: true
+ ================================================================
+*/
+
+gef_tower,41,175,4	script	Rank MVP#0	4_M_FARIY_HISIE,{
+	.@npc_name$ = "^FF8B00[= Magnus =]^000000";
+	mes .@npc_name$;
+	mes "Olá, ^0075E9" + strcharinfo(PC_NAME) + "^000000!";
+	mes "Eu sou o responsável pelo Rank de Caçadores de MVP.";
+	next;
+	mes .@npc_name$;
+	mes "Todo mês, no dia ^0075E9" + $@qdo_day_recomp_rank_MVP + "^000000, eu recompenso os maiores Caçadores.";
+	mes "O que deseja?";
+	next;
+	.@menu$ = "Nada:Ver o Rank";
+	//Verifica se é o dia de receber recompensa e
+	//se o personagem já recebeu a recompensa
+	if(gettime(GETTIME_DAYOFMONTH) == $@qdo_day_recomp_rank_MVP && 
+		qdo_dt_recom_rank_mvp != gettime(GETTIME_MONTH)){
+		.@menu$ += ":Receber recompensa";
+	}
+	switch(select(.@menu$)){
+		case 2:
+			callsub(S_VIEW, .@npc_name$);
+			break;
+		case 3:
+			callsub(S_RECOM, .@npc_name$);
+			break;
+		default:
+			mes .@npc_name$;
+			mes "Tudo bem...";
+			mes "Adeus.";
+			close;
+			break;
+	}
+	end;
+	
+S_VIEW:
+	.@npc_name$ = getarg(0);
+	if(callfunc("F_QDO_get_rank_MVP", .@rank$) == 0){
+		mes .@npc_name$;
+		mes "Parece que ninguém derrotou um MVP ainda...";
+		close;
+	}
+	mes .@npc_name$;
+	mes "Esse é o Rank dos " + $@qdo_qt_rank_MVP +  " maiores matadores de MVP dos últimos 30 dias (sem contabilizar hoje).";
+	mes "Confira a tabela:";
+	next;
+	mes .@npc_name$;
+	for(.@i = 0; .@i < getarraysize(.@rank$); .@i++){
+		.@primary_color$ = .@i <= 2 ? "^000000" : "^999999";
+		.@selected_color$ = "^0075E9";
+		//[0]ID,	[1]Nome		[2]Quantidade
+		explode(.@char$, .@rank$[.@i], $@qdo_delimiter$);
+		mes (getcharid(CHAR_ID_CHAR) == atoi(.@char$[0]) ? .@selected_color$ : .@primary_color$) + (.@i + 1) + "º - " + .@char$[1] + ": " + .@char$[2] + .@primary_color$;
+		if(.@i == 2){
+			mes "^000000--------------" + .@primary_color$;
+		}
+	}
+	close2;
+	end;
+
+S_RECOM:
+	.@npc_name$ = getarg(0);
+	if(callfunc("F_QDO_get_rank_MVP", .@rank$) == 0){
+		mes .@npc_name$;
+		mes "Seu nome não aparece no Rank de MVP.";
+		close;
+	}
+	//Verifica se o personagem já recebeu a recompensa
+	if(qdo_dt_recom_rank_mvp == gettime(GETTIME_MONTH)){
+		mes .@npc_name$;
+		mes "Você já recebeu sua recompensa...";
+		close;
+	}
+	//Analisa e posição do personagem no Rank
+	.@position = 0;
+	for(.@i = 0; .@i < getarraysize(.@rank$); .@i++){
+		//[0]ID,	[1]Nome		[2]Quantidade
+		explode(.@char$, .@rank$[.@i], $@qdo_delimiter$);
+		if(getcharid(CHAR_ID_CHAR) == atoi(.@char$[0])){
+			.@position = .@i + 1;
+			break;
+		}
+	}
+	//Verifica se o personagem está no Rank
+	if(.@position > 0){
+		mes .@npc_name$;
+		mes "Parabéns Herói!";
+		mes "Aqui está sua recompensa pela sua bravura.";
+		next;
+		//Seta o número do mês em que a recompensa foi entregue
+		qdo_dt_recom_rank_mvp = gettime(GETTIME_MONTH);
+		//Entrega a recompensa
+		callfunc("F_QDO_get_recomp_rank_MVP", .@position);
+		mes .@npc_name$;
+		mes "Espero ver você por aqui no próximo mês, novamente.";
+		close2;
+	}else{
+		mes .@npc_name$;
+		mes "Seu nome não aparece no Rank de MVP.";
+		close2;
+	}
+	end;
+	
+OnInit:
+	//Quantidade de Personagens no Rank MVP
+	$@qdo_qt_rank_MVP = 10;
+	
+	//Dia do mês para entregar a recompensa
+	$@qdo_day_recomp_rank_MVP = 1;
+	
+	//Configuração que regula as recompensas
+	//Configure os itens a seguir
+	//Configure a moeda e quantidades de 
+	//itens e zeny na funcão 'F_QDO_get_recomp_rank_MVP'
+	$@qdo_rmvp_enable_item = 0;
+	$@qdo_rmvp_enable_coin = 1;
+	$@qdo_rmvp_enable_zeny = 1;
+	
+	//Lista de itens para os 3 primeiros colocados
+	setarray $@rank_mvp_recomp[0],	Red_Box,
+									Red_Box,
+									Red_Box,
+									Red_Box_,
+									Red_Box_,
+									Red_Box_,
+									Old_Yellow_Box,
+									Old_Yellow_Box,
+									Old_Yellow_Box,
+									Masquerade_Ball_Box,
+									Masquerade_Ball_Box,
+									Masquerade_Ball_Box,
+									Guarantee_Armor_8Up,
+									Guarantee_Weapon_8Up,
+									Cherish_Box,
+									Cherish_Box,
+									Cherish_Box,
+									Accessory_Box,
+									Cherish_Box_Ori,
+									Cherish_Box_Ori,
+									Cherish_Box_Ori,
+									Guarantee_Weapon_5Up,
+									Guarantee_Armor_5Up,
+									Masquerade_Ball_Box2,
+									Masquerade_Ball_Box2,
+									Masquerade_Ball_Box2,
+									Old_Card_Album,
+									Gift_Box,
+									Gift_Box,
+									Gift_Box,
+									Old_Gift_Box,
+									Old_Gift_Box,
+									Old_Gift_Box,
+									Bloody_Dead_Branch,
+									Wrapped_Mask,
+									Wrapped_Mask,
+									Wrapped_Mask;
+									
+	$@qdo_delimiter$ = "|";
+	end;
+}
+
+mid_campin,85,134,4	duplicate(Rank MVP#0)	Rank MVP#13	4_M_FARIY_HISIE
+malaya,263,365,6	duplicate(Rank MVP#0)	Rank MVP#31	4_M_FARIY_HISIE
+
+function	script	F_QDO_get_recomp_rank_MVP	{
+	//Configuração de recompensas
+	switch(getarg(0)){
+		case 1:
+			.@qty_item = 3;
+			.@qty_coin = 40;
+			.@zeny = 500000;
+			break;
+		case 2:
+			.@qty_item = 2;
+			.@qty_coin = 20;
+			.@zeny = 250000;
+			break;
+		case 3:
+			.@qty_item = 2;
+			.@qty_coin = 20;
+			.@zeny = 125000;
+			break;
+		default:
+			.@qty_item = 1;
+			.@qty_coin = 10;
+			.@zeny = 50000;
+			break;
+	}
+	//Entrega os Zenies
+	if($@qdo_rmvp_enable_zeny == 1)
+		Zeny += .@zeny;
+	//Entrega as moedas
+	if($@qdo_rmvp_enable_coin == 1)
+		getitem($@qdo_coin_town, .@qty_coin);
+	//Entrega os itens
+	if($@qdo_rmvp_enable_item == 1){
+		.@i = 0;
+		do{
+			.@sorted = rand(getarraysize($@rank_mvp_recomp));
+			getitem($@rank_mvp_recomp[.@sorted], 1);
+			.@i++;
+		}while(.@i < .@qty_item);
+	}
+	return;
+}
+
+//[0]ID,	[1]Nome		[2]Quantidade
+function	script	F_QDO_get_rank_MVP	{
+	.@sql$ = "SELECT " + 
+				"c.char_id," + 
+				"c.name," + 
+				"count(c.char_id) as quant, " + 
+				"max(m.mvp_date) as last_mvp_date " +
+				"FROM mvplog as m " + 
+				"INNER JOIN `char` as c ON " + 
+					"c.char_id = m.kill_char_id " + 
+				"WHERE DATE(DATE_FORMAT(m.mvp_date, '%Y-%c-%d')) >= date_add(DATE_FORMAT(now(), '%Y-%c-%d'), INTERVAL -1 MONTH) AND " + 
+					"DATE(DATE_FORMAT(m.mvp_date, '%Y-%c-%d')) < DATE_FORMAT(now(), '%Y-%c-%d') " + 
+				"GROUP BY c.name " + 
+				"ORDER BY quant DESC, last_mvp_date " + 
+				"LIMIT 0," + $@qdo_qt_rank_MVP + ";";
+	.@nb = query_sql(.@sql$, .@char_ids, .@nomes$, .@qty, .@last_mvp_date);
+	if(.@nb == 0){
+		return 0;
+	}
+	for(.@i = 0; .@i < getarraysize(.@char_ids); .@i++){
+		setarray getelementofarray(getarg(0), .@i), .@char_ids[.@i] + $@qdo_delimiter$ + 
+													.@nomes$[.@i] + $@qdo_delimiter$ + 
+													.@qty[.@i] + $@qdo_delimiter$ + 
+													.@last_mvp_date[.@i];
+	}
+	return .@nb;
+}

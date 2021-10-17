@@ -1,0 +1,30 @@
+//| ================================================================
+//|                            CURANDEIRA
+//| ================================================================
+//| ----------------------------------------------------------------
+//|                               AUTOR
+//|                              QuodDG
+//| ----------------------------------------------------------------
+//|                             DESCRIÇÃO
+//| ----------------------------------------------------------------
+//|                          Cura os players
+//| ----------------------------------------------------------------
+//|                              VERSÕES
+//|                      1.0 Criação [QuodDG]
+//| ----------------------------------------------------------------
+//| ================================================================
+
+geffen,127,64,4	script	Curandeira#0	4_F_ARUNA_POP,{
+	skilleffect 28,MaxHp;
+	percentheal 100,100;
+}
+
+mid_camp,209,242,6	duplicate(Curandeira#0)	Curandeira#13	4_F_ARUNA_POP
+mid_campin,169,170,0	duplicate(Curandeira#0)	Cama#131	HIDDEN_NPC
+mid_campin,169,82,0	duplicate(Curandeira#0)	Cama#132	HIDDEN_NPC
+mid_campin,119,184,0	duplicate(Curandeira#0)	Cama#133	HIDDEN_NPC
+mid_campin,64,184,0	duplicate(Curandeira#0)	Cama#134	HIDDEN_NPC
+mid_campin,18,168,0	duplicate(Curandeira#0)	Cama#135	HIDDEN_NPC
+mid_campin,18,124,0	duplicate(Curandeira#0)	Cama#136	HIDDEN_NPC
+mid_campin,18,80,0	duplicate(Curandeira#0)	Cama#137	HIDDEN_NPC
+malaya,281,333,4	duplicate(Curandeira#0)	Curandeira#31	4_F_ARUNA_POP

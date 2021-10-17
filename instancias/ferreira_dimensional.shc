@@ -1,0 +1,850 @@
+/*
+ ================================================================
+                   Instância: Ferreira Dimensional
+ ================================================================
+ ----------------------------------------------------------------
+                               AUTOR
+                              QuodDG
+ ----------------------------------------------------------------
+                              VERSÕES
+                       1.0 Criação [QuodDG]
+ ----------------------------------------------------------------
+ Map: 1@face
+ Materials: Dark_Coagulated_Energy | Temporal_Crystal_
+ ================================================================
+*/
+
+//======================
+//== Iniciador
+//======================
+
+ma_in01,48,102,2	script	Cavaleiro Negro#face	4_M_KNIGHT_BLACK,{
+	.npc_name$ = "^FF8B00[= Cavaleiro Negro =]^000000";
+	if(BaseLevel < 160){
+		mes .npc_name$;
+		mes "Não tenho nada para conversar com você.";
+		close;
+	}
+	if (questprogress(61809)) {
+		if(questprogress(61809, PLAYTIME) == 1){
+			mes .npc_name$;
+			mes "Infelizmente a Fenda Dimensional está fechada, mas você poderá tentar novamente quando estiver aberta.";
+			close;
+		}
+		erasequest(61809);
+	}
+	mes .npc_name$;
+	mes "Olha só, até que você parece ser forte.";
+	mes "O que quer de mim?";
+	next;
+	select("Onde conseguiu essa espada?");
+	mes .npc_name$;
+	mes "Ela foi forjada pela maior Ferreira Exploradora entre todas as dimensões.";
+	next;
+	mes .npc_name$;
+	mes "Ela consegue unir a essências das criaturas com os minerais mais raros e difíceis de manipular.";
+	next;
+	mes .npc_name$;
+	mes "O resultado são armas muitos fortes, mas que são difíceis de manipular. Apenas os mais fortes podem controlar o poder dessas armas.";
+	next;
+	select("Onde posso encontrá-la?");
+	mes .npc_name$;
+	mes "A última notícia que tive dela foi que estava procurando uns cristais raros na Dimensão 871.";
+	mes "Se quiser, posso lhe enviar para lá.";
+	next;
+	if(select("Depois:Por favor!") == 1){
+		mes .npc_name$;
+		mes "Você quem sabe.";
+		mes "Até mais.";
+		close;
+	}
+	.@party_id = getcharid(CHAR_ID_PARTY);
+	if (!.@party_id) {
+		mes .npc_name$;
+		mes "Você não está em um Grupo. Dessa forma meu dispositivo não irá funcionar.";
+		close;
+	}
+	if(has_instance("1@face") == ""){
+		if (getcharid(CHAR_ID_CHAR) != getpartyleader(.@party_id, 2)) {
+			mes .npc_name$;
+			mes "Só posso registrar a viagem dimensional para o Líder do seu Grupo.";
+			close;
+		}
+		getpartymember(.@party_id);
+		if($@partymembercount > 3){
+			mes .npc_name$;
+			mes "Não vamos exagerar...";
+			mes "Meu dispositivo só conseguirá enviar até 3 pessoas por vez.";
+			close;
+		}
+		.@instance = instance_create("Ferreira Dimensional", .@party_id);
+		if (.@instance >= 0) {
+			if (instance_attachmap("1@face", .@instance) == "") {
+				mes .npc_name$;
+				mes "Meu dispositivo está com mau funcionamento...";
+				mes "Talvez esteja sobrecarregado.";
+				mes "Vamos tentar de novo em alguns minutos.";
+				close2;
+				instance_destroy(.@instance);
+				end;
+			}
+			instance_set_timeout(3600, 10, .@instance);
+			instance_init(.@instance);
+		}
+		if(.@instance < 0 || has_instance("1@face") == ""){
+			mes .npc_name$;
+			mes "Meu dispositivo está com mau funcionamento...";
+			mes "Talvez esteja sobrecarregado.";
+			mes "Vamos tentar de novo em alguns minutos.";
+			close;
+		}
+	}
+	mes .npc_name$;
+	mes "Muito bem, tudo está pronto.";
+	mes "Boa sorte!";
+	close2;
+	setquest(61809);
+	warp("1@face", 112, 379);
+	end;
+}
+
+//======================
+//== map_zone and flags
+//======================
+
+1@face	mapflag	zone	Memorial Dungeon 3
+
+//======================
+//== Warps
+//======================
+
+1@face,149,95,0	script	#face_w1	WARPNPC,3,3,{
+	warp(instance_mapname("1@face"), 127, 95);
+	end;
+
+OnInstanceInit:
+OnDisable:
+	disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+	
+OnEnable:
+	enablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+}
+
+1@face,139,100,0	script	#face_w2	WARPNPC,3,3,{
+	warp(instance_mapname("1@face"), 155, 113);
+	end;
+
+OnInstanceInit:
+OnDisable:
+	disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+	
+OnEnable:
+	enablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+}
+
+1@face,248,185,0	script	#face_w3	WARPNPC,3,3,{
+	warp(instance_mapname("1@face"), 261, 170);
+	end;
+
+OnInstanceInit:
+OnDisable:
+	disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+	
+OnEnable:
+	enablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+}
+
+1@face,204,122,0	script	#face_w4	WARPNPC,3,3,{
+	warp(instance_mapname("1@face"), 210, 145);
+	end;
+
+OnInstanceInit:
+OnDisable:
+	disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+	
+OnEnable:
+	enablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+}
+
+1@face,215,159,0	script	#face_w5	WARPNPC,3,3,{
+	warp("mid_camp", 217, 242);
+	end;
+
+OnInstanceInit:
+OnDisable:
+	disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+	
+OnEnable:
+	enablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+}
+
+//======================
+//== Controlador
+//======================
+
+1@face,1,1,0	script	#face_controller	FAKE_NPC,{
+	end;
+
+OnInstanceInit:
+	'face_step = 0;
+	'face_mode = 0;
+	end;
+	
+OnSummonThief:
+	monster(instance_mapname("1@face"), 114, 352, "Assaltante", DANDELION, 1, instance_npcname(strnpcinfo(NPC_NAME)) + "::OnThiefDead");
+	monster(instance_mapname("1@face"), 114, 355, "Assaltante", DANDELION, 1, instance_npcname(strnpcinfo(NPC_NAME)) + "::OnThiefDead");
+	monster(instance_mapname("1@face"), 114, 349, "Assaltante", DANDELION, 1, instance_npcname(strnpcinfo(NPC_NAME)) + "::OnThiefDead");
+	end;
+	
+OnThiefDead:
+	if(mobcount(instance_mapname("1@face"), instance_npcname(strnpcinfo(NPC_NAME)) + "::OnThiefDead") > 0){
+		end;
+	}
+	'face_step = 2;
+	end;
+	
+OnSummonMob:
+	.@qty = 'face_mode > 0 ? (20 * getmapusers(instance_mapname("1@face"))) : 10;
+	if('face_step == 3){
+		areamonster(instance_mapname("1@face"), 57, 344, 61, 251, strmobinfo(2, BRADIUM_GOLEM), BRADIUM_GOLEM, .@qty, instance_npcname(strnpcinfo(NPC_NAME)) + "::OnMobDead1");
+	}
+	else if('face_step == 4){
+		areamonster(instance_mapname("1@face"), 109, 287, 209, 241, strmobinfo(2, BRADIUM_GOLEM), BRADIUM_GOLEM, .@qty, instance_npcname(strnpcinfo(NPC_NAME)) + "::OnMobDead2");
+	}
+	else if('face_step == 5){
+		areamonster(instance_mapname("1@face"), 239, 324, 317, 201, strmobinfo(2, DOLOMEDES), DOLOMEDES, .@qty, instance_npcname(strnpcinfo(NPC_NAME)) + "::OnMobDead3");
+	}
+	else if('face_step == 6){
+		areamonster(instance_mapname("1@face"), 253, 168, 317, 60, strmobinfo(2, ANCIENT_TREE), ANCIENT_TREE, .@qty, instance_npcname(strnpcinfo(NPC_NAME)) + "::OnMobDead4");
+	}
+	else if('face_step == 7){
+		areamonster(instance_mapname("1@face"), 198, 173, 234, 145, strmobinfo(2, ALPHONSE), ALPHONSE, (.@qty / 2), instance_npcname(strnpcinfo(NPC_NAME)) + "::OnMobDead5");
+	}
+	end;
+
+OnSummonBoss:
+	if('face_step == 3){
+		.@boss_id = 'face_mode > 0 ? G_RANDEL : RANDEL;
+		monster(instance_mapname("1@face"), 144, 68, strmobinfo(2, .@boss_id), .@boss_id, 1, instance_npcname(strnpcinfo(NPC_NAME)) + "::OnBossDead");
+	}
+	else if('face_step == 4){
+		.@boss_id = 'face_mode > 0 ? G_FLAMEL : FLAMEL;
+		monster(instance_mapname("1@face"), 186, 279, strmobinfo(2, .@boss_id), .@boss_id, 1, instance_npcname(strnpcinfo(NPC_NAME)) + "::OnBossDead");
+	}
+	else if('face_step == 5){
+		.@boss_id = 'face_mode > 0 ? G_CHEN : CHEN;
+		monster(instance_mapname("1@face"), 275, 312, strmobinfo(2, .@boss_id), .@boss_id, 1, instance_npcname(strnpcinfo(NPC_NAME)) + "::OnBossDead");
+	}
+	else if('face_step == 6){
+		.@boss_id = 'face_mode > 0 ? G_GERTIE : GERTIE;
+		monster(instance_mapname("1@face"), 215, 106, strmobinfo(2, .@boss_id), .@boss_id, 1, instance_npcname(strnpcinfo(NPC_NAME)) + "::OnBossDead");
+	}
+	else if('face_step == 7){
+		if('face_mode > 0){
+			setarray(.@boss[0], B_RANDEL, B_FLAMEL, B_CHEN, B_GERTIE);
+		}
+		else{
+			setarray(.@boss[0], G_RANDEL, G_FLAMEL, G_CHEN, G_GERTIE);
+		}
+		.@boss_id = .@boss[rand(getarraysize(.@boss))];
+		monster(instance_mapname("1@face"),215, 159, strmobinfo(2, .@boss_id), .@boss_id, 1, instance_npcname(strnpcinfo(NPC_NAME)) + "::OnBossDead");
+	}
+	end;
+	
+OnMobDead1:
+	//Drop
+	.@rate = ('face_step * ('face_mode > 0 ? 50 : 25));
+	if(rand(1, 1000) < .@rate){
+		getitem(Dark_Coagulated_Energy, 1);
+	}
+	if(rand(1, 1000) < .@rate){
+		getitem(Temporal_Crystal_, 1);
+	}
+	instance_announce(instance_id(), ">>" + mobcount(instance_mapname("1@face"), instance_npcname(strnpcinfo(NPC_NAME)) + "::OnMobDead1"), bc_npc);
+	if(mobcount(instance_mapname("1@face"), instance_npcname(strnpcinfo(NPC_NAME)) + "::OnMobDead1") != 3){
+		end;
+	}
+	instance_announce(instance_id(), "O Guardião da Fase 1 acordou.", bc_npc);
+	donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnSummonBoss");
+	end;
+	
+OnMobDead2:
+	//Drop
+	.@rate = ('face_step * ('face_mode > 0 ? 50 : 25));
+	if(rand(1, 1000) < .@rate){
+		getitem(Dark_Coagulated_Energy, 1);
+	}
+	if(rand(1, 1000) < .@rate){
+		getitem(Temporal_Crystal_, 1);
+	}
+	instance_announce(instance_id(), ">>" + mobcount(instance_mapname("1@face"), instance_npcname(strnpcinfo(NPC_NAME)) + "::OnMobDead2"), bc_npc);
+	if(mobcount(instance_mapname("1@face"), instance_npcname(strnpcinfo(NPC_NAME)) + "::OnMobDead2") != 3){
+		end;
+	}
+	instance_announce(instance_id(), "O Guardião da Fase 2 acordou.", bc_npc);
+	donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnSummonBoss");
+	end;
+	
+OnMobDead3:
+	//Drop
+	.@rate = ('face_step * ('face_mode > 0 ? 50 : 25));
+	if(rand(1, 1000) < .@rate){
+		getitem(Dark_Coagulated_Energy, 1);
+	}
+	if(rand(1, 1000) < .@rate){
+		getitem(Temporal_Crystal_, 1);
+	}
+	instance_announce(instance_id(), ">>" + mobcount(instance_mapname("1@face"), instance_npcname(strnpcinfo(NPC_NAME)) + "::OnMobDead3"), bc_npc);
+	if(mobcount(instance_mapname("1@face"), instance_npcname(strnpcinfo(NPC_NAME)) + "::OnMobDead3") != 3){
+		end;
+	}
+	instance_announce(instance_id(), "O Guardião da Fase 3 acordou.", bc_npc);
+	donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnSummonBoss");
+	end;
+	
+OnMobDead4:
+	//Drop
+	.@rate = ('face_step * ('face_mode > 0 ? 50 : 25));
+	if(rand(1, 1000) < .@rate){
+		getitem(Dark_Coagulated_Energy, 1);
+	}
+	if(rand(1, 1000) < .@rate){
+		getitem(Temporal_Crystal_, 1);
+	}
+	instance_announce(instance_id(), ">>" + mobcount(instance_mapname("1@face"), instance_npcname(strnpcinfo(NPC_NAME)) + "::OnMobDead4"), bc_npc);
+	if(mobcount(instance_mapname("1@face"), instance_npcname(strnpcinfo(NPC_NAME)) + "::OnMobDead4") != 3){
+		end;
+	}
+	instance_announce(instance_id(), "O Guardião da Fase 4 acordou.", bc_npc);
+	donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnSummonBoss");
+	end;
+	
+OnMobDead5:
+	//Drop
+	.@rate = ('face_step * ('face_mode > 0 ? 50 : 25));
+	if(rand(1, 1000) < .@rate){
+		getitem(Dark_Coagulated_Energy, 1);
+	}
+	if(rand(1, 1000) < .@rate){
+		getitem(Temporal_Crystal_, 1);
+	}
+	instance_announce(instance_id(), ">>" + mobcount(instance_mapname("1@face"), instance_npcname(strnpcinfo(NPC_NAME)) + "::OnMobDead5"), bc_npc);
+	if(mobcount(instance_mapname("1@face"), instance_npcname(strnpcinfo(NPC_NAME)) + "::OnMobDead5") != 3){
+		end;
+	}
+	instance_announce(instance_id(), "O Guardião da Fase 5 acordou.", bc_npc);
+	donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnSummonBoss");
+	end;
+	
+OnBossDead:
+	if(mobcount(instance_mapname("1@face"), instance_npcname(strnpcinfo(NPC_NAME)) + "::OnBossDead") > 0){
+		end;
+	}
+	if('face_step == 3){
+		'face_step = 4;
+		donpcevent(instance_npcname("#face_w1") + "::OnEnable");
+		donpcevent(instance_npcname("#face_controller") + "::OnSummonMob");
+	}
+	else if('face_step == 4){
+		'face_step = 5;
+		donpcevent(instance_npcname("#face_w2") + "::OnEnable");
+		donpcevent(instance_npcname("#face_controller") + "::OnSummonMob");
+	}
+	else if('face_step == 5){
+		'face_step = 6;
+		donpcevent(instance_npcname("#face_w3") + "::OnEnable");
+		donpcevent(instance_npcname("#face_controller") + "::OnSummonMob");
+	}
+	else if('face_step == 6){
+		'face_step = 7;
+		donpcevent(instance_npcname("#face_w4") + "::OnEnable");
+		donpcevent(instance_npcname("#face_controller") + "::OnSummonMob");
+	}
+	else if('face_step == 7){
+		'face_step = 8;
+		donpcevent(instance_npcname("Liz#face") + "::OnEnd");
+	}
+	end;
+}
+
+//======================
+//== Loja
+//======================
+
+-	shop	loja_liz_face	-1,501:100
+
+//======================
+//== NPCs
+//======================
+
+1@face,108,352,6	script	Liz#face	4_F_JOB_BLACKSMITH,{
+	.npc_name$ = "^FF8B00[= Liz =]^000000";
+	if('face_step == 9){
+		mes .npc_name$;
+		mes "Olá de novo.";
+		mes "O que deseja?";
+		next;
+		if(select("Preciso de uma arma:Encantar uma arma") == 2){
+			callsub(S_ENCHANT);
+			end;
+		}
+		mes .npc_name$;
+		mes "Posso forjar qualquer arma do catálogo, se você tiver:";
+		mes .material1_qty + "x ^0075E9" + getitemname(Dark_Coagulated_Energy) + "^000000.";
+		mes .material2_qty + "x ^0075E9" + getitemname(Temporal_Crystal_) + "^000000.";
+		close2;
+		npcshopattach(.shopname$, 1);
+		callshop(.shopname$, 1);
+		end;
+	}
+	else if('face_step == 8){
+		mes .npc_name$;
+		mes "Olá de novo.";
+		mes "Vejo que consegiu chegar ao centro desse lugar.";
+		next;
+		mes .npc_name$;
+		mes "Espero que sua excursão tenha rendido frutos.";
+		mes "Eu mesma consegui até mais do que esperava.";
+		next;
+		mes .npc_name$;
+		mes "Como coletei mais do que eu precisava, fique com isso para você.";
+		close2;
+		.@qty = ('face_mode > 0 ? 50 : 25);
+		if(qdo_inst_face == 0){
+			.@qty += 50;
+			qdo_inst_face = 1;
+		}
+		getitem(Dark_Coagulated_Energy, .@qty);
+		getitem(Temporal_Crystal_, .@qty);
+		donpcevent(instance_npcname("#face_w5") + "::OnEnable");
+		'face_step = 9;
+		end;
+	}
+	.@party_id = getcharid(CHAR_ID_PARTY);
+	if('face_step == 0){
+		mes .npc_name$;
+		mes (qdo_inst_face == 0) ? 
+			"Olá aventureiro." : 
+			"Olá, ^0075E9" + strcharinfo(PC_NAME) + "^000000!";
+		mes "O que veio fazer?";
+		next;
+		.@menu$ = "Preciso de uma arma:Encantar uma arma:" + (qdo_inst_face == 0 ? "Conhecer a famosa Ferreira" : "Coletar mais materiais");
+		switch(select(.@menu$)){
+			case 1:
+				mes .npc_name$;
+				mes "Posso forjar qualquer arma do catálogo, se você tiver:";
+				mes .material1_qty + "x ^0075E9" + getitemname(Dark_Coagulated_Energy) + "^000000.";
+				mes .material2_qty + "x ^0075E9" + getitemname(Temporal_Crystal_) + "^000000.";
+				close2;
+				npcshopattach(.shopname$, 1);
+				callshop(.shopname$, 1);
+				end;
+				break;
+			case 2:
+				callsub(S_ENCHANT);
+				end;
+				break;
+		}
+		if (getcharid(CHAR_ID_CHAR) != getpartyleader(.@party_id, 2)) {
+			mes .npc_name$;
+			if(qdo_inst_face == 0){
+				mes "Nossa, é uma honra saber que meu nome é conhecido em tantos lugares.";
+				mes "Eu sou Liz, a Ferreira.";
+				mes "Hehe.";
+			}
+			else{
+				mes "Que bom que não estou sozinha nesse lugar.";
+				mes "Fique à vontade.";
+			}
+			close;
+		}
+		if(qdo_inst_face == 0){
+			mes .npc_name$;
+			mes "Nossa, é uma honra saber que meu nome é conhecido em tantos lugares.";
+			mes "Eu sou Liz, a Ferreira.";
+			mes "Hehe.";
+			close2;
+			'face_step = 1;
+			donpcevent(instance_npcname("Assaltante#face_a1") + "::OnEnable");
+			donpcevent(instance_npcname("Assaltante#face_a2") + "::OnEnable");
+			donpcevent(instance_npcname("Assaltante#face_a3") + "::OnEnable");
+			initnpctimer();
+			end;
+		}
+		'face_step = 2;
+	}
+	else if('face_step == 1){
+		mes .npc_name$;
+		mes "Essa escória...";
+		mes "Ficam me seguindo por todo lugar.";
+		mes "Mas essa será a última vez!";
+		close;
+	}
+	if('face_step == 2 && qdo_inst_face > 0){
+		mes .npc_name$;
+		mes "Muito bem!";
+		mes "Não se preocupe que não irei lhe atrapalhar.";
+		getpartymember(.@party_id);
+		if($@partymembercount > 1){
+			'face_mode = 1;
+			next;
+		}
+		else{
+			mes "Como está se sentindo hoje?";
+			next;
+			'face_mode = select("Determinad" + (Sex == SEX_MALE ? "o" : "a") + ":Muito Determinad" + (Sex == SEX_MALE ? "o" : "a")) - 1;
+		}
+		mes .npc_name$;
+		mes "Boa sorte!";
+		mes "Nos vemos depois.";
+		close2;
+		'face_step = 3;
+		donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnDisable");
+		donpcevent(instance_npcname("#face_controller") + "::OnSummonMob");
+	}
+	else if(qdo_inst_face == 0){
+		mes .npc_name$;
+		mes "Muito obrigada pela ajuda.";
+		mes "Como recompensa, vou lhe contar o que estou fazendo aqui.";
+		next;
+		mes .npc_name$;
+		mes "Eu encontrei um livro antigo que falava sobre ^0075E9" + getitemname(Dark_Coagulated_Energy) + "^000000 e ^0075E9" + getitemname(Temporal_Crystal_) + "^000000.";
+		next;
+		mes .npc_name$;
+		mes "Esses são materiais que possibilitam infundir uma grande quantidade de poder em uma arma.";
+		next;
+		mes .npc_name$;
+		mes "Pela ajuda com os assaltantes, eu prometo que farei qualquer uma das armas do meu catálogo usando os materiais encontrados nesta Dimensão.";
+		next;
+		mes .npc_name$;
+		mes "Você só precisa me trazer:";
+		mes .material1_qty + "x ^0075E9" + getitemname(Dark_Coagulated_Energy) + "^000000.";
+		mes .material2_qty + "x ^0075E9" + getitemname(Temporal_Crystal_) + "^000000.";
+		mes "Para cada arma que quiser que eu forje para você.";
+		next;
+		mes .npc_name$;
+		mes "Esses materiais podem ser encontrados nas criaturas desse lugar.";
+		mes "Mas cuidado, esse lugar é dividido em 5 partes e cada uma delas é guardado por um Guardião sinistro.";
+		next;
+		mes .npc_name$;
+		mes "Quanto mais perto você estiver do centro desse lugar, maior é a chance de encontrar esses materiais.";
+		next;
+		getpartymember(.@party_id);
+		if($@partymembercount > 1){
+			'face_mode = 1;
+		}
+		else{
+			mes .npc_name$;
+			mes "O nível da sua determinação também afeta a dificuldade desse lugar.";
+			mes "Como está se sentindo hoje?";
+			next;
+			'face_mode = select("Determinad" + (Sex == SEX_MALE ? "o" : "a") + ":Muito Determinad" + (Sex == SEX_MALE ? "o" : "a")) - 1;
+		}
+		mes .npc_name$;
+		mes "Boa sorte, então!";
+		mes "Nos vemos depois.";
+		close2;
+		'face_step = 3;
+		donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnDisable");
+		donpcevent(instance_npcname("#face_controller") + "::OnSummonMob");
+	}
+	end;
+	
+S_ENCHANT:
+	disable_items();
+	.@mat_ench_qty = 20;
+	mes .npc_name$;
+	mes "Para isso eu preciso que me traga:";
+	mes .@mat_ench_qty + "x ^0075E9" + getitemname(Dark_Coagulated_Energy) + "^000000 e";
+	mes .@mat_ench_qty + "x ^0075E9" + getitemname(Temporal_Crystal_) + "^000000.";
+	next;
+	mes .npc_name$;
+	mes "Eu posso adicionar até 3 encantamentos em cada arma.";
+	mes "Se a arma já tiver um encantamento, eles serão substituídos.";
+	mes "Nenhuma carta ou refinamento serão perdidos.";
+	next;
+	if(	countitem(Dark_Coagulated_Energy) < .@mat_ench_qty || 
+		countitem(Temporal_Crystal_) < .@mat_ench_qty){
+		mes .npc_name$;
+		mes "Parece que você não tem material suficiente.";
+		mes "Volte quando estiver com o necessário.";
+		close;
+	}
+	mes .npc_name$;
+	mes "Muito bem...";
+	mes "...me mostre o que quer encantar.";
+	next;
+	//Selecionando o equipamento
+	.@menu$ = "";
+	setarray .@equip_ident$[0],"Arma Esquerda", "Arma Direita";
+	setarray .@equip_slot[0], EQI_HAND_L, EQI_HAND_R;
+	for(.@i = 0; .@i < getarraysize(.@equip_slot); .@i++) {
+		if(getequipisequiped(.@equip_slot[.@i])){
+			.@menu$ += getequipname(.@equip_slot[.@i]) + ":";
+		}else{
+			.@menu$ += "^999999" + .@equip_ident$[.@i] + " (Vazio)^000000:";
+		}
+	}
+	if(.@menu$ == ""){
+		mes .npc_name$;
+		mes "Desculpe, mas você não tem nada equipado no momento.";
+		close;
+	}
+	.@selected = select(.@menu$);
+	.@equip_num = .@equip_slot[.@selected - 1];
+	if(!getequipisequiped(.@equip_num)){
+		mes .npc_name$;
+		mes "Não há nada aqui. Talvez você tenha retirado o equipamento.";
+		close;
+	}
+	//Selecionando as cartas disponíveis no equipamento
+	setarray .@equip_card[0], getequipcardid(.@equip_num,0), getequipcardid(.@equip_num,1), getequipcardid(.@equip_num,2), getequipcardid(.@equip_num,3);
+	if(.@equip_card[0] == 255 || .@equip_card[0] == 254){
+		mes .npc_name$;
+		mes "Não posso encantar equipamentos que foram forjados por outros Ferreiros.";
+		close;
+	}
+	//Capturando os dados do equipamento
+	.@equip_id = 0;
+	.@equip_refine = getequiprefinerycnt(.@equip_num);
+	//Verificando se a arma é compatível com o encantamento
+	for(.@j = 0; .@j < getarraysize(.itens); .@j++){
+		if(getequipid(.@equip_num) == .itens[.@j]){
+			.@equip_id = getequipid(.@equip_num);
+			break;
+		}
+	}
+	if(.@equip_id == 0){
+		mes .npc_name$;
+		mes "Isso não foi forjado por mim.";
+		close;
+	}
+	mes .npc_name$;
+	mes "Qual tipo de encantamento você prefere?";
+	next;
+	.@ench_type = select("Físico:Mágico") - 1;
+	//Buscando os encantamentos disponíveis
+	for(.@i = 1; .@i <= 3; .@i++){
+		//<slot><ench_type><array>
+		callfunc("F_QDO_Get_Enchants_FD", .@i, .@ench_type, .@available_enchants);
+		if(getarraysize(.@available_enchants) == 0){
+			mes .npc_name$;
+			mes "Nenhum encantamento disponível.";
+			close;
+		}
+		//Sorteando os encantamentos
+		setarray(.@equip_card[.@i], .@available_enchants[rand(getarraysize(.@available_enchants))]);
+		.@j++;
+	}
+	progressbar("0x0000ff", 1);
+	//Gerando o item com os novos encantamentos
+	specialeffect EF_FIREPILLAR;
+	delitem(Dark_Coagulated_Energy, .@mat_ench_qty);
+	delitem(Temporal_Crystal_, .@mat_ench_qty);
+	delequip(.@equip_num);
+	getitem2(.@equip_id, 1, 1, .@equip_refine, 0, .@equip_card[0], .@equip_card[1], .@equip_card[2], .@equip_card[3]);
+	mes .npc_name$;
+	mes "Muito bem...";
+	mes "Aproveite seu equipamento!";
+	close2;
+	end;
+	
+OnBuyItem:
+	.@qty = 0;
+	.@k = 0;
+	for(.@i = 0; .@i < getarraysize(@bought_nameid); .@i++){
+		for(.@j = 0; .@j < getarraysize(.itens); .@j++){
+			if(@bought_nameid[.@i] == .itens[.@j]){
+				setarray(.@buying[.@k], .itens[.@j], @bought_quantity[.@i]);
+				.@qty += @bought_quantity[.@i];
+				.@k += 2;
+				break;
+			}
+		}
+	}
+	.@m1_qty = .material1_qty * .@qty;
+	.@m2_qty = .material2_qty * .@qty;
+	if(countitem(Dark_Coagulated_Energy) < .@m1_qty){
+		dispbottom("Você não tem [" + getitemname(Dark_Coagulated_Energy) + "] suficiente.", 0xFF0000);
+		end;
+	}
+	if(countitem(Temporal_Crystal_) < .@m2_qty){
+		dispbottom("Você não tem [" + getitemname(Temporal_Crystal_) + "] suficiente.", 0xFF0000);
+		end;
+	}
+	delitem(Dark_Coagulated_Energy, .@m1_qty);
+	delitem(Temporal_Crystal_, .@m2_qty);
+	dispbottom("Você usou " + .@m1_qty + "x [" + getitemname(Dark_Coagulated_Energy) + "] e " + .@m2_qty + "x [" + getitemname(Temporal_Crystal_) + "].");
+	for(.@i = 0; .@i < getarraysize(.@buying); .@i += 2){
+		getitem(.@buying[.@i], .@buying[.@i + 1]);
+	}
+	end;
+	
+OnInstanceInit:
+	.material1_qty = 3000;
+	.material2_qty = 3000;
+	deletearray(.itens[0], getarraysize(.itens));
+	setarray(.itens[0],
+		Book_of_Vicious_Mind,
+		Bow_of_Vicious_Mind,
+		Dagger_of_Vicious_Mind,
+		Fist_of_Vicious_Mind,
+		Huuma_Shuriken_of_Vicious_Mind,
+		Katar_of_Vicious_Mind,
+		Lance_of_Vicious_Mind,
+		Mace_of_Vicious_Mind,
+		Revolver_of_Vicious_Mind,
+		Rod_of_Vicious_Mind,
+		Saber_of_Vicious_Mind,
+		Spear_of_Vicious_Mind,
+		Staff_of_Vicious_Mind,
+		Two_Handed_Axe_of_Vicious_Mind,
+		Two_Handed_Sword_of_Vicious_Mind,
+		Violin_of_Vicious_Mind,
+		Wire_of_Vicious_Mind
+	);
+	
+	.shopname$ = "loja_liz_face";
+	npcshopdelitem .shopname$, 501;
+	
+	for(.@i = 0; .@i < getarraysize(.itens); .@i++){
+		npcshopadditem .shopname$, .itens[.@i], 1;
+	}
+	end;
+	
+OnEnd:
+	movenpc(instance_npcname(strnpcinfo(NPC_NAME)), 222, 177);
+	donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnEnable");
+	end;
+	
+OnTimer3000:
+	npctalk("Vocês de novo? Eu já disse que só irei fazer nada antes de vocês me pagarem.", instance_npcname(strnpcinfo(NPC_NAME)), false);
+	end;
+	
+OnTimer7000:
+	npctalk("Vocês não ousariam!?", instance_npcname(strnpcinfo(NPC_NAME)), false);
+	stopnpctimer();
+	end;
+
+OnDisable:
+	disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+	
+OnEnable:
+	enablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+}
+
+1@face,114,352,3	script	Assaltante#face_a1	DANDELION,{
+	if(.attack == 1){
+		donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnDisable");
+		donpcevent(instance_npcname("Assaltante#face_a2") + "::OnDisable");
+		donpcevent(instance_npcname("Assaltante#face_a3") + "::OnDisable");
+		donpcevent(instance_npcname("#face_controller") + "::OnSummonThief");
+	}
+	end;
+
+OnInstanceInit:
+OnDisable:
+	.attack = 0;
+	specialeffect(EF_POISONHIT);
+	disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+	
+OnEnable:
+	enablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	initnpctimer();
+	end;
+	
+OnTimer1000:
+	npctalk("Liz, finalmente te encontramos!", instance_npcname(strnpcinfo(NPC_NAME)), false);
+	end;
+	
+OnTimer5000:
+	npctalk("Você vai fazer nossas adagas nem que seja à força!", instance_npcname(strnpcinfo(NPC_NAME)), false);
+	end;
+	
+OnTimer8000:
+	.attack = 1;
+	stopnpctimer();
+	end;
+}
+
+1@face,114,355,3	script	Assaltante#face_a2	DANDELION,{
+	end;
+
+OnInstanceInit:
+OnDisable:
+	specialeffect(EF_POISONHIT);
+	disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+	
+OnEnable:
+	enablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+}
+
+1@face,114,349,3	duplicate(Assaltante#face_a2)	Assaltante#face_a3	DANDELION
+
+//======================
+//== Functions
+//======================
+
+//<slot><ench_type><array>
+//[0]ID		[1]Name
+function	script	F_QDO_Get_Enchants_FD	{
+	.@slot = getarg(0); 		//ID do item
+	.@ench_type = getarg(1);	//Tipo do encantamento [0=Físico | 1=Mágico]
+	
+	switch(.@slot){
+		case 1:
+			if(.@ench_type == 0){
+				set getelementofarray(getarg(2), 0), S_Str;
+				set getelementofarray(getarg(2), 1), S_Agi;
+				set getelementofarray(getarg(2), 2), S_Luck;
+			}
+			else{
+				set getelementofarray(getarg(2), 0), S_Vital;
+				set getelementofarray(getarg(2), 1), S_Int;
+				set getelementofarray(getarg(2), 2), S_Dex;
+			}
+			break;
+		case 2:
+			if(.@ench_type == 0){
+				set getelementofarray(getarg(2), 0), Fighting_Spirit1;
+				set getelementofarray(getarg(2), 1), Fighting_Spirit2;
+				set getelementofarray(getarg(2), 2), Fighting_Spirit3;
+			}
+			else{
+				set getelementofarray(getarg(2), 0), Spell1;
+				set getelementofarray(getarg(2), 1), Spell2;
+				set getelementofarray(getarg(2), 2), Spell3;
+			}
+			break;
+		case 3:
+			if(.@ench_type == 0){
+				set getelementofarray(getarg(2), 0), Ambition1Lv;
+				set getelementofarray(getarg(2), 1), Ambition2Lv;
+				set getelementofarray(getarg(2), 2), Ambition3Lv;
+				set getelementofarray(getarg(2), 3), Ambition4Lv;
+			}
+			else{
+				set getelementofarray(getarg(2), 0), Tab1Lv;
+				set getelementofarray(getarg(2), 1), Tab2Lv;
+				set getelementofarray(getarg(2), 2), Tab3Lv;
+				set getelementofarray(getarg(2), 3), Tab4Lv;
+			}
+			break;
+	}
+	return;
+}

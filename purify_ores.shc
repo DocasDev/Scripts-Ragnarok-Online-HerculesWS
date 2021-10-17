@@ -1,0 +1,77 @@
+/* ================================================================
+                        Purificação de Minério
+   ================================================================
+   ----------------------------------------------------------------
+                            COMPATIBILIDADE
+							   Hercules
+   ----------------------------------------------------------------
+                                VERSÕES
+                        1.0 Criação [QuodDG]
+   ----------------------------------------------------------------
+ * ================================================================
+ */
+ 
+geffen_in,64,144,0	script	Christopher#0	1_M_SMITH,{
+	.@npcName$ = "[ Christopher ]";
+	if (checkweight(1201,1) == 0) {
+		mes .@npcName$;
+		mes "Espere um minuto!";
+		mes "Atualmente você está carregando muitos itens com você.";
+		close;
+	}
+	mes .@npcName$;
+	mes "Posso purificar seus Minérios.";
+	mes "Bem...";
+	mes "Qual você quer fazer?";
+	next;
+	switch(select("Purificar Oridecon (0z):Purificar Elunium (0z):Oridecon para Bradium (50000z):Elunium para Carnium (50000z):Refined Bradium para Carnium (50000z):Sair")) {
+		case 1:
+			.@price = 0;
+			setarray .@ores[0], Oridecon_Stone, 5, Oridecon;
+			break;
+		case 2:
+			.@price = 0;
+			setarray .@ores[0], Elunium_Stone, 5, Elunium;
+			break;
+		case 3:
+			.@price = 50000;
+			setarray .@ores[0], Oridecon, 3, Bradium;
+			break;
+		case 4:
+			.@price = 50000;
+			setarray .@ores[0], Elunium, 3, Carnium;
+			break;
+		case 5:
+			.@price = 50000;
+			setarray .@ores[0], Purified_Bradium, 1, Carnium;
+			break;
+		default:
+			mes .@npcName$;
+			mes "Sinta-se à vontade para vir a qualquer hora, sempre que precisar. Passe bem.";
+			close;
+	}
+	if(.@price > 0 && ( Class == Job_Blacksmith || Class == Job_Whitesmith || Class == Job_Mechanic || Class == Job_Mechanic2 )){
+		.@price -= #QDOVIP ? 25000 : 10000;
+	}
+	if (countitem(.@ores[0]) < .@ores[1]) {
+		mes .@npcName$;
+		mes "Eu te disse, eu preciso de " + .@ores[1] + "x ^0075E9" + getitemname(.@ores[0]) + "^000000 para 1x ^0075E9" + getitemname(.@ores[2]) + "^000000.";
+		close;
+	}
+	if(.@price > 0 && Zeny < .@price){
+		mes .@npcName$;
+		mes "É melhor você não tentar me enganar porque você não tem Zeny suficiente!";
+		close;
+	}
+	if(.@price > 0){
+		Zeny -= .@price;
+	}
+	delitem .@ores[0],.@ores[1];
+	getitem .@ores[2],1;
+	mes .@npcName$;
+	mes "Aqui está 1x ^0075E9" + getitemname(.@ores[2]) + "^000000 para você. Você será sempre bem vindo aqui, estarei esperando por você.";
+	close;
+	end;
+}
+
+ma_in01,67,22,6	duplicate(Christopher#0)	Christopher#31	1_M_SMITH

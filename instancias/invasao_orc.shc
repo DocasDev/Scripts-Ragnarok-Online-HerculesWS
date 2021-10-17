@@ -1,0 +1,775 @@
+/*
+ ================================================================
+                    Instância: Invasão dos Orcs
+ ================================================================
+ ----------------------------------------------------------------
+                               AUTOR
+                              QuodDG
+ ----------------------------------------------------------------
+                              VERSÕES
+                       1.0 Criação [QuodDG]
+ ----------------------------------------------------------------
+ ================================================================
+*/
+
+//======================
+//== Iniciador
+//======================
+
+gef_tower,60,103,4	script	Rachel#orc	4_M_CRU_HEAD,{
+	.@npc_name$ = "^FF8B00[= Rachel =]^000000";
+	if(countitem(Purified_Energy_Crystal) > 0){
+		delitem(Purified_Energy_Crystal, countitem(Purified_Energy_Crystal));
+	}
+	if(BaseLevel < 90){
+		mes .@npc_name$;
+		mes "Desculpe, mas embora eu esteja procurando ajuda, você não é forte o suficiente para me ajudar.";
+		close;
+	}
+	if (questprogress(61806)) {
+		if(questprogress(61806, PLAYTIME) == 1){
+			mes .@npc_name$;
+			mes "Infelizmente a Fenda Dimensional está fechada, mas você poderá tentar novamente quando estiver aberta.";
+			close;
+		}
+		erasequest(61806);
+	}
+	mes .@npc_name$;
+	mes "Olá!";
+	mes "Ainda bem que encontrei um Herói nessa Dimensão que pode me ajudar.";
+	mes "Eu sou uma viajante Dimensional, meu nome é ^0075E9Rachel^000000";
+	next;
+	mes .@npc_name$;
+	mes "Antes de mais nada, como é o seu nome?";
+	next;
+	select(strcharinfo(PC_NAME));
+	mes .@npc_name$;
+	mes "É um prazer te conhecer ^0075E9" + strcharinfo(PC_NAME) + "^000000!";
+	mes "A Dimensão da qual eu venho está sendo invadida por Orcs enviados de outra Dimensão.";
+	next;
+	mes .@npc_name$;
+	mes "Nós conseguimos repelir a invasão até um certo ponto e encontrar o covil dos Orcs.";
+	next;
+	mes .@npc_name$;
+	mes "Mas eles são muitos e precisamos fechar a fenda que está trazendo eles para nossa Dimensão.";
+	mes "Você gostaria de nos ajudar?";
+	next;
+	if(select("Estou ocupado.:Claro!") == 1){
+		mes .@npc_name$;
+		mes "Tudo bem!";
+		mes "Quem sabe em outra hora, ou talvez eu possa encontrar outra pessoa.";
+		close;
+	}
+	mes .@npc_name$;
+	mes "Que bom!";
+	mes "Eu posso lhe enviar pela Fenda Dimensional até a entrada do Covil.";
+	next;
+	mes .@npc_name$;
+	mes "Mas cuidado, dentro do Covil há um monstro que está além da imaginação...";
+	mes "Dizem que ele governa os Orcs.";
+	next;
+	mes .@npc_name$;
+	mes "Você acha que dá conta?";
+	mes "Está preparado para isso?";
+	next;
+	if(select("Quem sabe depois:Estou pronto") == 1){
+		mes .@npc_name$;
+		mes "Tudo bem, volte quando achar que está pronto!";
+		close;
+	}
+	.@party_id = getcharid(CHAR_ID_PARTY);
+	if (!.@party_id) {
+		mes .@npc_name$;
+		mes "Você não está em um Grupo. Dessa forma meu dispositivo não irá funcionar.";
+		close;
+	}
+	if(has_instance("1@orcs") == ""){
+		if (getcharid(CHAR_ID_CHAR) != getpartyleader(.@party_id, 2)) {
+			mes .@npc_name$;
+			mes "Eu agradeço muito a ajuda, mas terei que pedir para falar com o Líder do seu Grupo.";
+			close;
+		}
+		getpartymember(.@party_id);
+		if($@partymembercount > 3){
+			mes .@npc_name$;
+			mes "Eu agradeço muito a ajuda, mas tem gente demais no seu grupo.";
+			mes "Meu dispositivo só conseguirá enviar até 3 pessoas por vez.";
+			close;
+		}
+		.@instance = instance_create("Invasão dos Orcs", .@party_id);
+		if (.@instance >= 0) {
+			for (.@i = 1; .@i <= 2; ++.@i) {
+				if (instance_attachmap(.@i + "@orcs", .@instance) == "") {
+					mes .@npc_name$;
+					mes "Meu dispositivo está com mau funcionamento...";
+					mes "Talvez esteja sobrecarregado.";
+					mes "Vamos tentar de novo em alguns minutos.";
+					close2;
+					instance_destroy(.@instance);
+					end;
+				}
+			}
+			instance_set_timeout(3600, 10, .@instance);
+			instance_init(.@instance);
+		}
+		if(.@instance < 0 || has_instance("1@orcs") == ""){
+			mes .@npc_name$;
+			mes "Meu dispositivo está com mau funcionamento...";
+			mes "Talvez esteja sobrecarregado.";
+			mes "Vamos tentar de novo em alguns minutos.";
+			close;
+		}
+	}
+	mes .@npc_name$;
+	mes "Muito bem, tudo está pronto.";
+	mes "Boa sorte!";
+	close2;
+	setquest(61806);
+	warp("1@orcs", 179, 19);
+	end;
+}
+
+//======================
+//== map_zone and flags
+//======================
+
+1@orcs	mapflag	zone	Memorial Dungeon 2
+2@orcs	mapflag	zone	Memorial Dungeon 2
+
+//======================
+//== Warps/Controladores
+//======================
+
+1@orcs,168,125,0	script	B1 Area 1#orc	WARPNPC,3,3,{
+	warp(instance_mapname("1@orcs"), 169, 130);
+	end;
+
+OnInstanceInit:
+	'orc_mob_respawn = 0;
+	'spa_torch_true = rand(1, 12);
+	donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnRespawn");
+OnDisable:
+	disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+	
+OnEnable:
+	'orc_mob_respawn = 0;
+	instance_announce(instance_id(), "[?????]: Não é possível! Como humanos insignificantes poderiam derrotar meus servos assim!?", bc_npc);
+	enablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	sleep(2000);
+	donpcevent(instance_npcname("B1 Area 2#orc") + "::OnRespawn");
+	end;
+
+OnRespawn:
+	if('orc_mob_respawn == 0){
+		instance_announce(instance_id(), "[?????]: Ergam-se meus servos e destruam todos os inimigos!", bc_npc);
+	}
+	else{
+		instance_announce(instance_id(), "[?????]: Hahaha! Levantem-se mais uma vez meus servos. Lutem, lutem, lutem...", bc_npc);
+	}
+	sleep(2000);
+	freeloop(1);
+	for(.@i = 0; .@i < 10; .@i++){
+		donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnSummon");
+	}
+	freeloop(0);
+	'orc_mob_respawn++;
+	end;
+	
+OnSummon:
+	.@mobGID = areamonster(instance_mapname("1@orcs"), 134, 73, 146, 89, strmobinfo(2, ORK_WARRIOR), ORK_WARRIOR, 1, instance_npcname("B1 Area Mobs#orc")+"::OnMyMobDead1");
+	.@atk_min = getunitdata(.@mobGID, UDT_ATKMIN) << 1;
+	.@atk_max = getunitdata(.@mobGID, UDT_ATKMAX) << 1;
+	.@max_hp = getunitdata(.@mobGID, UDT_MAXHP) << 1;
+	.@max_hp += (.@max_hp * 10 / 100 * 'orc_mob_respawn);
+	setunitdata(.@mobGID, UDT_ATKMIN, .@atk_min + (50 * 'orc_mob_respawn));
+	setunitdata(.@mobGID, UDT_ATKMAX, .@atk_max + (50 * 'orc_mob_respawn));
+	setunitdata(.@mobGID, UDT_MAXHP, .@max_hp);
+	setunitdata(.@mobGID, UDT_HP, .@max_hp);
+	end;
+}
+
+1@orcs,89,94,0	script	B1 Area 2#orc	WARPNPC,3,3,{
+	warp(instance_mapname("1@orcs"), 89, 88);
+	end;
+
+OnInstanceInit:
+OnDisable:
+	disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+	
+OnEnable:
+	'orc_mob_respawn = 0;
+	instance_announce(instance_id(), "[?????]: Como isso aconteceu novamente!? Esses vermes...", bc_npc);
+	enablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	sleep(2000);
+	donpcevent(instance_npcname("B1 Area 3#orc") + "::OnRespawn");
+	end;
+
+OnRespawn:
+	if('orc_mob_respawn == 0){
+		instance_announce(instance_id(), "[?????]: Desta vez, vocês irão cair, humanos!", bc_npc);
+	}
+	else{
+		instance_announce(instance_id(), "[?????]: Minha horda nunca será derrotada por insetos como os humanos! Acabem com eles", bc_npc);
+	}
+	sleep(2000);
+	freeloop(1);
+	for(.@i = 0; .@i < 10; .@i++){
+		donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnSummon");
+	}
+	freeloop(0);
+	'orc_mob_respawn++;
+	end;
+	
+OnSummon:
+	.@mobGID = areamonster(instance_mapname("1@orcs"), 127, 159, 103, 165, strmobinfo(2, ORC_BABY), ORC_BABY, 1, instance_npcname("B1 Area Mobs#orc")+"::OnMyMobDead2");
+	.@atk_min = getunitdata(.@mobGID, UDT_ATKMIN) << 1;
+	.@atk_max = getunitdata(.@mobGID, UDT_ATKMAX) << 1;
+	.@max_hp = getunitdata(.@mobGID, UDT_MAXHP) << 1;
+	.@max_hp += (.@max_hp * 20 / 100 * 'orc_mob_respawn);
+	setunitdata(.@mobGID, UDT_ATKMIN, .@atk_min + (70 * 'orc_mob_respawn));
+	setunitdata(.@mobGID, UDT_ATKMAX, .@atk_max + (70 * 'orc_mob_respawn));
+	setunitdata(.@mobGID, UDT_MAXHP, .@max_hp);
+	setunitdata(.@mobGID, UDT_HP, .@max_hp);
+	end;
+}
+
+1@orcs,38,105,0	script	B1 Area 3#orc	WARPNPC,3,3,{
+	warp(instance_mapname("1@orcs"), 38, 111);
+	end;
+	
+OnInstanceInit:
+OnDisable:
+	disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+	
+OnEnable:
+	'orc_mob_respawn = 0;
+	instance_announce(instance_id(), "[?????]: Isso não pode estar acontecendo...", bc_npc);
+	enablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	sleep(2000);
+	donpcevent(instance_npcname("B1 Area 4#orc") + "::OnRespawn");
+	end;
+
+OnRespawn:
+	if('orc_mob_respawn == 0){
+		instance_announce(instance_id(), "[?????]: Meus servos, destruam todos os humanos!!!", bc_npc);
+	}
+	else{
+		instance_announce(instance_id(), "[?????]: Não importa quantas vezes eles sejam derrotados...", bc_npc);
+	}
+	sleep(2000);
+	freeloop(1);
+	for(.@i = 0; .@i < 10; .@i++){
+		donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnSummon");
+	}
+	freeloop(0);
+	'orc_mob_respawn++;
+	end;
+	
+OnSummon:
+	.@mobGID = areamonster(instance_mapname("1@orcs"), 69, 81, 39, 91, strmobinfo(2, ORC_LADY), ORC_LADY, 1, instance_npcname("B1 Area Mobs#orc")+"::OnMyMobDead3");
+	.@atk_min = getunitdata(.@mobGID, UDT_ATKMIN) << 1;
+	.@atk_max = getunitdata(.@mobGID, UDT_ATKMAX) << 1;
+	.@max_hp = getunitdata(.@mobGID, UDT_MAXHP) << 1;
+	.@max_hp += (.@max_hp * 30 / 100 * 'orc_mob_respawn);
+	setunitdata(.@mobGID, UDT_ATKMIN, .@atk_min + (100 * 'orc_mob_respawn));
+	setunitdata(.@mobGID, UDT_ATKMAX, .@atk_max + (100 * 'orc_mob_respawn));
+	setunitdata(.@mobGID, UDT_MAXHP, .@max_hp);
+	setunitdata(.@mobGID, UDT_HP, .@max_hp);
+	end;
+}
+
+1@orcs,21,189,0	script	B1 Area 4#orc	WARPNPC,3,3,{
+	if (getcharid(CHAR_ID_CHAR) != getpartyleader(getcharid(CHAR_ID_PARTY), 2)) {
+		end;
+	}
+	if('orc_portal_1 == 0){
+		instance_announce(instance_id(), "[?????]: Humanos insignificantes... Desta vez você irão cair!", bc_npc);
+		'orc_weak_boss = countitem(Purified_Energy_Crystal);
+		if('orc_weak_boss > 0){
+			delitem(Purified_Energy_Crystal, 'orc_weak_boss);
+		}
+		donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnDisable");
+		sleep(2000);
+		donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnSummonBoss");
+		end;
+	}
+	warp(instance_mapname("2@orcs"), 32, 171);
+	sleep(2000);
+	donpcevent(instance_npcname("B2 Area 1#orc") + "::OnRespawn");
+	end;
+	
+OnInstanceInit:
+	'orc_weak_boss = 0;
+OnDisable:
+	disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+	
+OnEnable:
+	'orc_mob_respawn = 0;
+	enablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+	
+OnRespawn:
+	if('orc_mob_respawn == 0){
+		instance_announce(instance_id(), "[?????]: Humanos... sempre se achando superiores. Vou mostrar a vocês o verdadeiro poder dos Orcs!", bc_npc);
+	}
+	else{
+		instance_announce(instance_id(), "[?????]: Não nos subestimem, humanos!!!", bc_npc);
+	}
+	sleep(2000);
+	freeloop(1);
+	for(.@i = 0; .@i < 10; .@i++){
+		donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnSummon");
+	}
+	freeloop(0);
+	'orc_mob_respawn++;
+	end;
+	
+OnSummon:
+	.@mobGID = areamonster(instance_mapname("1@orcs"), 40, 134, 60, 155, strmobinfo(2, ORC_ZOMBIE), ORC_ZOMBIE, 1, instance_npcname("B1 Area Mobs#orc")+"::OnMyMobDead4");
+	.@atk_min = getunitdata(.@mobGID, UDT_ATKMIN) << 1;
+	.@atk_max = getunitdata(.@mobGID, UDT_ATKMAX) << 1;
+	.@max_hp = getunitdata(.@mobGID, UDT_MAXHP) << 1;
+	.@max_hp += (.@max_hp * 40 / 100 * 'orc_mob_respawn);
+	setunitdata(.@mobGID, UDT_ATKMIN, .@atk_min + (120 * 'orc_mob_respawn));
+	setunitdata(.@mobGID, UDT_ATKMAX, .@atk_max + (120 * 'orc_mob_respawn));
+	setunitdata(.@mobGID, UDT_MAXHP, .@max_hp);
+	setunitdata(.@mobGID, UDT_HP, .@max_hp);
+	end;
+	
+OnSummonBoss:
+	'orc_weak_boss = 'orc_weak_boss > 3 ? 'orc_weak_boss : 3;
+	//consolemes(CONSOLEMES_DEBUG, 'orc_weak_boss);
+	.@mobGID = monster(instance_mapname("1@orcs"), 21, 189, strmobinfo(2, ORK_HERO2), ORK_HERO2, 1, instance_npcname("B1 Area Mobs#orc")+"::OnBossDead1");
+	.@atk_min = getunitdata(.@mobGID, UDT_ATKMIN);
+	.@atk_max = getunitdata(.@mobGID, UDT_ATKMAX);
+	.@matk_min = getunitdata(.@mobGID, UDT_MATKMIN);
+	.@matk_max = getunitdata(.@mobGID, UDT_MATKMAX);
+	.@max_hp = getunitdata(.@mobGID, UDT_MAXHP);
+	//consolemes(CONSOLEMES_DEBUG, .@max_hp);
+	.@max_hp -= (.@max_hp * 'orc_weak_boss / 10);
+	//consolemes(CONSOLEMES_DEBUG, .@max_hp);
+	setunitdata(.@mobGID, UDT_ATKMIN, .@atk_min - (.@atk_min * ('orc_weak_boss / 10)));
+	setunitdata(.@mobGID, UDT_ATKMAX, .@atk_max - (.@atk_max * ('orc_weak_boss / 10)));
+	setunitdata(.@mobGID, UDT_MATKMIN, .@matk_min - (.@matk_min * ('orc_weak_boss / 10)));
+	setunitdata(.@mobGID, UDT_MATKMAX, .@matk_max - (.@matk_max * ('orc_weak_boss / 10)));
+	setunitdata(.@mobGID, UDT_MAXHP, .@max_hp);
+	setunitdata(.@mobGID, UDT_HP, .@max_hp);
+	end;
+}
+
+1@orcs,1,1,0	script	B1 Area Mobs#orc	FAKE_NPC,{
+	end;
+	
+OnMyMobDead1:
+	if(mobcount(instance_mapname("1@orcs"), instance_npcname(strnpcinfo(NPC_NAME)) + "::OnMyMobDead1") > 0){
+		end;
+	}
+	if('orc_mob_respawn < 5){
+		donpcevent(instance_npcname("B1 Area 1#orc") + "::OnRespawn");
+	}
+	else{
+		donpcevent(instance_npcname("B1 Area 1#orc") + "::OnEnable");
+	}
+	end;
+	
+OnMyMobDead2:
+	if(mobcount(instance_mapname("1@orcs"), instance_npcname(strnpcinfo(NPC_NAME)) + "::OnMyMobDead2") > 0){
+		end;
+	}
+	if('orc_mob_respawn < 5){
+		donpcevent(instance_npcname("B1 Area 2#orc") + "::OnRespawn");
+	}
+	else{
+		donpcevent(instance_npcname("B1 Area 2#orc") + "::OnEnable");
+	}
+	end;
+	
+OnMyMobDead3:
+	if(mobcount(instance_mapname("1@orcs"), instance_npcname(strnpcinfo(NPC_NAME)) + "::OnMyMobDead3") > 0){
+		end;
+	}
+	if('orc_mob_respawn < 5){
+		donpcevent(instance_npcname("B1 Area 3#orc") + "::OnRespawn");
+	}
+	else{
+		donpcevent(instance_npcname("B1 Area 3#orc") + "::OnEnable");
+	}
+	end;
+	
+OnMyMobDead4:
+	if(mobcount(instance_mapname("1@orcs"), instance_npcname(strnpcinfo(NPC_NAME)) + "::OnMyMobDead4") > 0){
+		end;
+	}
+	if('orc_mob_respawn < 5){
+		donpcevent(instance_npcname("B1 Area 4#orc") + "::OnRespawn");
+	}
+	else{
+		donpcevent(instance_npcname("B1 Area 4#orc") + "::OnEnable");
+	}
+	end;
+	
+OnBossDead1:
+	instance_announce(instance_id(), "[Orc Hero]: Humanos traiçoeiros! Não sei que tipo de truque vocês usaram para me enfraquecer, mas da próxima vez que nos encontrarmos, eu irei destruir todos vocês!", bc_npc);
+	'orc_portal_1 = 1;
+	donpcevent(instance_npcname("B1 Area 4#orc") + "::OnEnable");
+	end;
+}
+
+2@orcs,48,100,0	script	B2 Area 1#orc	WARPNPC,3,3,{
+	warp(instance_mapname("2@orcs"), 48, 94);
+	end;
+	
+OnInstanceInit:
+OnDisable:
+	disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+	
+OnEnable:
+	'orc_mob_respawn = 0;
+	instance_announce(instance_id(), "[Orc Hero]: Hahah! A arrogância dos humanos será o seu fim!", bc_npc);
+	enablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	sleep(2000);
+	donpcevent(instance_npcname("B2 Area 2#orc") + "::OnRespawn");
+	end;
+
+OnRespawn:
+	instance_announce(instance_id(), "[Orc Hero]: Ergam-se minha horda e destruam os humanos!", bc_npc);
+	sleep(2000);
+	freeloop(1);
+	for(.@i = 0; .@i < 10; .@i++){
+		donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnSummon");
+	}
+	freeloop(0);
+	'orc_mob_respawn++;
+	end;
+	
+OnSummon:
+	.@mobGID = areamonster(instance_mapname("2@orcs"), 56, 123, 84, 115, strmobinfo(2, ORC_SKELETON), ORC_SKELETON, 1, instance_npcname("B2 Area Mobs#orc")+"::OnMyMobDead1");
+	.@atk_min = getunitdata(.@mobGID, UDT_ATKMIN) << 1;
+	.@atk_max = getunitdata(.@mobGID, UDT_ATKMAX) << 1;
+	.@max_hp = getunitdata(.@mobGID, UDT_MAXHP) << 1;
+	.@max_hp += (.@max_hp * 40 / 100 * 'orc_mob_respawn);
+	setunitdata(.@mobGID, UDT_ATKMIN, .@atk_min + (120 * 'orc_mob_respawn));
+	setunitdata(.@mobGID, UDT_ATKMAX, .@atk_max + (120 * 'orc_mob_respawn));
+	setunitdata(.@mobGID, UDT_MAXHP, .@max_hp);
+	setunitdata(.@mobGID, UDT_HP, .@max_hp);
+	end;
+}
+
+2@orcs,101,55,0	script	B2 Area 2#orc	WARPNPC,3,3,{
+	warp(instance_mapname("2@orcs"), 107, 55);
+	end;
+	
+OnInstanceInit:
+OnDisable:
+	disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+	
+OnEnable:
+	'orc_mob_respawn = 0;
+	instance_announce(instance_id(), "[Orc Hero]: Meus poderes serão restaurados em breve!", bc_npc);
+	enablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	sleep(2000);
+	donpcevent(instance_npcname("B2 Area 3#orc") + "::OnRespawn");
+	end;
+
+OnRespawn:
+	instance_announce(instance_id(), "[Orc Hero]: Ergam-se minha horda e destruam os humanos!", bc_npc);
+	sleep(2000);
+	freeloop(1);
+	for(.@i = 0; .@i < 10; .@i++){
+		donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnSummon");
+	}
+	freeloop(0);
+	'orc_mob_respawn++;
+	end;
+	
+OnSummon:
+	.@mobGID = areamonster(instance_mapname("2@orcs"), 35, 71, 81, 59, strmobinfo(2, ORC_ARCHER), ORC_ARCHER, 1, instance_npcname("B2 Area Mobs#orc")+"::OnMyMobDead2");
+	.@atk_min = getunitdata(.@mobGID, UDT_ATKMIN) << 1;
+	.@atk_max = getunitdata(.@mobGID, UDT_ATKMAX) << 1;
+	.@max_hp = getunitdata(.@mobGID, UDT_MAXHP) << 1;
+	.@max_hp += (.@max_hp * 50 / 100 * 'orc_mob_respawn);
+	setunitdata(.@mobGID, UDT_ATKMIN, .@atk_min + (140 * 'orc_mob_respawn));
+	setunitdata(.@mobGID, UDT_ATKMAX, .@atk_max + (140 * 'orc_mob_respawn));
+	setunitdata(.@mobGID, UDT_MAXHP, .@max_hp);
+	setunitdata(.@mobGID, UDT_HP, .@max_hp);
+	end;
+}
+
+2@orcs,167,104,0	script	B2 Area 3#orc	WARPNPC,3,3,{
+	warp(instance_mapname("2@orcs"), 167, 98);
+	end;
+	
+OnInstanceInit:
+OnDisable:
+	disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+	
+OnEnable:
+	'orc_mob_respawn = 0;
+	instance_announce(instance_id(), "[Orc Hero]: Não importa quanto você tentem, não poderão nos derrotar!", bc_npc);
+	enablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	sleep(2000);
+	donpcevent(instance_npcname("B2 Area 4#orc") + "::OnRespawn");
+	end;
+
+OnRespawn:
+	instance_announce(instance_id(), "[Orc Hero]: Ergam-se minha horda e destruam os humanos!", bc_npc);
+	sleep(2000);
+	freeloop(1);
+	for(.@i = 0; .@i < 10; .@i++){
+		donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnSummon");
+	}
+	freeloop(0);
+	'orc_mob_respawn++;
+	end;
+	
+OnSummon:
+	.@mobGID = areamonster(instance_mapname("2@orcs"), 148, 116, 166, 135, strmobinfo(2, HIGH_ORC), HIGH_ORC, 1, instance_npcname("B2 Area Mobs#orc")+"::OnMyMobDead3");
+	.@atk_min = getunitdata(.@mobGID, UDT_ATKMIN) << 1;
+	.@atk_max = getunitdata(.@mobGID, UDT_ATKMAX) << 1;
+	.@max_hp = getunitdata(.@mobGID, UDT_MAXHP) << 1;
+	.@max_hp += (.@max_hp * 60 / 100 * 'orc_mob_respawn);
+	setunitdata(.@mobGID, UDT_ATKMIN, .@atk_min + (150 * 'orc_mob_respawn));
+	setunitdata(.@mobGID, UDT_ATKMAX, .@atk_max + (150 * 'orc_mob_respawn));
+	setunitdata(.@mobGID, UDT_MAXHP, .@max_hp);
+	setunitdata(.@mobGID, UDT_HP, .@max_hp);
+	end;
+}
+
+2@orcs,167,104,0	script	B2 Area 4#orc	WARPNPC,3,3,{
+	//warp(instance_mapname("2@orcs"), 167, 98);
+	end;
+	
+OnInstanceInit:
+	'orc_boss = 0;
+OnDisable:
+	disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+	
+OnEnable:
+	'orc_mob_respawn = 0;
+	enablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+
+OnRespawn:
+	instance_announce(instance_id(), "[Orc Hero]: Ergam-se minha horda e destruam os humanos!", bc_npc);
+	sleep(2000);
+	freeloop(1);
+	for(.@i = 0; .@i < 10; .@i++){
+		donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnSummon");
+	}
+	freeloop(0);
+	'orc_mob_respawn++;
+	end;
+	
+OnSummon:
+	.@mobGID = areamonster(instance_mapname("2@orcs"), 148, 29, 171, 51, strmobinfo(2, HIGH_ORC), HIGH_ORC, 1, instance_npcname("B2 Area Mobs#orc")+"::OnMyMobDead4");
+	.@atk_min = getunitdata(.@mobGID, UDT_ATKMIN) << 1;
+	.@atk_max = getunitdata(.@mobGID, UDT_ATKMAX) << 1;
+	.@max_hp = getunitdata(.@mobGID, UDT_MAXHP) << 1;
+	.@max_hp += (.@max_hp * 80 / 100 * 'orc_mob_respawn);
+	setunitdata(.@mobGID, UDT_ATKMIN, .@atk_min + (170 * 'orc_mob_respawn));
+	setunitdata(.@mobGID, UDT_ATKMAX, .@atk_max + (170 * 'orc_mob_respawn));
+	setunitdata(.@mobGID, UDT_MAXHP, .@max_hp);
+	setunitdata(.@mobGID, UDT_HP, .@max_hp);
+	end;
+	
+OnSummonBoss:
+	'orc_weak_boss = 3;
+	'orc_boss = monster(instance_mapname("2@orcs"), 175, 18, strmobinfo(2, ORK_HERO), ORK_HERO, 1, instance_npcname("B2 Area Mobs#orc")+"::OnBossDead2");
+	//Capturando informações originais do boss
+	'boss_atk_min = getunitdata('orc_boss, UDT_ATKMIN);
+	'boss_atk_max = getunitdata('orc_boss, UDT_ATKMAX);
+	'boss_matk_min = getunitdata('orc_boss, UDT_MATKMIN);
+	'boss_matk_max = getunitdata('orc_boss, UDT_MATKMAX);
+	'boss_max_hp = getunitdata('orc_boss, UDT_MAXHP);
+	//Recalculando os atributos do boss
+	.@max_hp = 'boss_max_hp - ('boss_max_hp * 'orc_weak_boss / 10);
+	setunitdata('orc_boss, UDT_ATKMIN, 'boss_atk_min - ('boss_atk_min * ('orc_weak_boss / 10)));
+	setunitdata('orc_boss, UDT_ATKMAX, 'boss_atk_max - ('boss_atk_max * ('orc_weak_boss / 10)));
+	setunitdata('orc_boss, UDT_MATKMIN, 'boss_matk_min - ('boss_matk_min * ('orc_weak_boss / 10)));
+	setunitdata('orc_boss, UDT_MATKMAX, 'boss_matk_max - ('boss_matk_max * ('orc_weak_boss / 10)));
+	setunitdata('orc_boss, UDT_MAXHP, .@max_hp);
+	setunitdata('orc_boss, UDT_HP, .@max_hp);
+	initnpctimer();
+	end;
+	
+OnTimer15000:
+	if('orc_weak_boss == 0 || mobcount(instance_mapname("2@orcs"), instance_npcname("B2 Area Mobs#orc")+"::OnBossDead2") == 0){
+		stopnpctimer();
+		end;
+	}
+	setnpctimer(0);
+	'orc_weak_boss--;
+	.@max_hp = 'boss_max_hp - ('boss_max_hp * 'orc_weak_boss / 10);
+	.@hp = getunitdata('orc_boss, UDT_HP) + (.@max_hp * 20 / 100);
+	if(.@hp > 'boss_max_hp){
+		.@hp = 'boss_max_hp;
+	}
+	specialeffect(EF_MAXPOWER, AREA, 'orc_boss);
+	setunitdata('orc_boss, UDT_ATKMIN, 'boss_atk_min - ('boss_atk_min * ('orc_weak_boss / 10)));
+	setunitdata('orc_boss, UDT_ATKMAX, 'boss_atk_max - ('boss_atk_max * ('orc_weak_boss / 10)));
+	setunitdata('orc_boss, UDT_MATKMIN, 'boss_matk_min - ('boss_matk_min * ('orc_weak_boss / 10)));
+	setunitdata('orc_boss, UDT_MATKMAX, 'boss_matk_max - ('boss_matk_max * ('orc_weak_boss / 10)));
+	setunitdata('orc_boss, UDT_MAXHP, .@max_hp);
+	setunitdata('orc_boss, UDT_HP, .@hp);
+	specialeffect(EF_HEAL, AREA, 'orc_boss);
+	if('orc_weak_boss == 0){
+		instance_announce(instance_id(), "[Orc Hero]: Hahaha! Seus truques são inúteis contra mim.", bc_npc);
+	}
+	else{
+		instance_announce(instance_id(), "[Orc Hero]: Siimmm! Eu sinto meu poder retornando.", bc_npc);
+	}
+	end;
+}
+
+2@orcs,1,1,0	script	B2 Area Mobs#orc	FAKE_NPC,{
+	end;
+	
+OnMyMobDead1:
+	if(mobcount(instance_mapname("2@orcs"), instance_npcname(strnpcinfo(NPC_NAME)) + "::OnMyMobDead1") > 0){
+		end;
+	}
+	if('orc_mob_respawn < 3){
+		donpcevent(instance_npcname("B2 Area 1#orc") + "::OnRespawn");
+	}
+	else{
+		donpcevent(instance_npcname("B2 Area 1#orc") + "::OnEnable");
+	}
+	end;
+	
+OnMyMobDead2:
+	if(mobcount(instance_mapname("2@orcs"), instance_npcname(strnpcinfo(NPC_NAME)) + "::OnMyMobDead2") > 0){
+		end;
+	}
+	if('orc_mob_respawn < 3){
+		donpcevent(instance_npcname("B2 Area 2#orc") + "::OnRespawn");
+	}
+	else{
+		donpcevent(instance_npcname("B2 Area 2#orc") + "::OnEnable");
+	}
+	end;
+	
+OnMyMobDead3:
+	if(mobcount(instance_mapname("2@orcs"), instance_npcname(strnpcinfo(NPC_NAME)) + "::OnMyMobDead3") > 0){
+		end;
+	}
+	if('orc_mob_respawn < 3){
+		donpcevent(instance_npcname("B2 Area 3#orc") + "::OnRespawn");
+	}
+	else{
+		donpcevent(instance_npcname("B2 Area 3#orc") + "::OnEnable");
+	}
+	end;
+	
+OnMyMobDead4:
+	if(mobcount(instance_mapname("2@orcs"), instance_npcname(strnpcinfo(NPC_NAME)) + "::OnMyMobDead4") > 0){
+		end;
+	}
+	if('orc_mob_respawn < 3){
+		donpcevent(instance_npcname("B2 Area 4#orc") + "::OnRespawn");
+	}
+	else{
+		instance_announce(instance_id(), "[Orc Hero]: Chegou a hora, eu vou destruir todos os humanos!", bc_npc);
+		sleep(2000);
+		donpcevent(instance_npcname("B2 Area 4#orc") + "::OnSummonBoss");
+	}
+	end;
+	
+OnBossDead2:
+	donpcevent(instance_npcname("Rachel#inorc") + "::OnEnable");
+	end;
+}
+
+//======================
+//== NPCs
+//======================
+
+1@orcs,100,114,0	script	Árvore#1orcs	HIDDEN_NPC,{
+	if (getcharid(CHAR_ID_CHAR) != getpartyleader(getcharid(CHAR_ID_PARTY), 2)) {
+		end;
+	}
+	getitem(Purified_Energy_Crystal, 1);
+	disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+}
+
+1@orcs,105,32,0	duplicate(Árvore#1orcs)	Árvore#2orcs	HIDDEN_NPC
+1@orcs,30,32,0	duplicate(Árvore#1orcs)	Árvore#3orcs	HIDDEN_NPC
+1@orcs,36,175,0	duplicate(Árvore#1orcs)	Árvore#4orcs	HIDDEN_NPC
+1@orcs,14,191,0	duplicate(Árvore#1orcs)	Árvore#5orcs	HIDDEN_NPC
+
+2@orcs,26,164,0	script	Tocha#2orcs_1	HIDDEN_NPC,{
+	if (getcharid(CHAR_ID_CHAR) != getpartyleader(getcharid(CHAR_ID_PARTY), 2)) {
+		end;
+	}
+	if(strnpcinfo(NPC_NAME_HIDDEN) == ("2orcs_" + 'spa_torch_true)){
+		instance_announce(instance_id(), "[" + strcharinfo(PC_NAME) + "] encontrou a Essência do Fogo.", bc_npc);
+		specialeffect(EF_HIT2, SELF, instance_npcname(strnpcinfo(NPC_NAME)));
+		'orc_torch = 1;
+	}
+	else{
+		specialeffect(EF_HIT3, SELF, instance_npcname(strnpcinfo(NPC_NAME)));
+	}
+	disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+}
+
+2@orcs,55,155,0	duplicate(Tocha#2orcs_1)	Tocha#2orcs_2	HIDDEN_NPC
+2@orcs,98,171,0	duplicate(Tocha#2orcs_1)	Tocha#2orcs_3	HIDDEN_NPC
+2@orcs,108,146,0	duplicate(Tocha#2orcs_1)	Tocha#2orcs_4	HIDDEN_NPC
+2@orcs,35,92,0	duplicate(Tocha#2orcs_1)	Tocha#2orcs_5	HIDDEN_NPC
+2@orcs,32,70,0	duplicate(Tocha#2orcs_1)	Tocha#2orcs_6	HIDDEN_NPC
+2@orcs,70,31,0	duplicate(Tocha#2orcs_1)	Tocha#2orcs_7	HIDDEN_NPC
+2@orcs,84,51,0	duplicate(Tocha#2orcs_1)	Tocha#2orcs_8	HIDDEN_NPC
+2@orcs,136,98,0	duplicate(Tocha#2orcs_1)	Tocha#2orcs_9	HIDDEN_NPC
+2@orcs,144,117,0	duplicate(Tocha#2orcs_1)	Tocha#2orcs_10	HIDDEN_NPC
+2@orcs,142,145,0	duplicate(Tocha#2orcs_1)	Tocha#2orcs_11	HIDDEN_NPC
+2@orcs,162,134,0	duplicate(Tocha#2orcs_1)	Tocha#2orcs_12	HIDDEN_NPC
+
+2@orcs,182,18,4	script	Rachel#inorc	4_M_CRU_HEAD,{
+	.@npc_name$ = "^FF8B00[= Rachel =]^000000";
+	mes .@npc_name$;
+	mes "Você é incrível!";
+	mes "Sua força e determinação serão festejadas nessa Dimensão.";
+	next;
+	mes .@npc_name$;
+	mes "Muito obrigada!";
+	mes "Gostaria de lhe recompensar com essas moedas da sua Dimensão.";
+	next;
+	if(qdo_inst_orc == 0){
+		qdo_inst_orc = 1;
+		getitem($@qdo_coin_town, 10);
+		if('orc_torch == 1){
+			getitem(Orc_Hero_Helm, 1);
+			mes .@npc_name$;
+			mes "Além disso, por seu grupo ter encontrado a ^FF0000Essência do Fogo^000000, irei lhe presentear com esse ^0075E9" + getitemname(Orc_Hero_Helm) + "^000000.";
+			next;
+		}
+	}
+	else{
+		getitem($@qdo_coin_town, 3);
+	}
+	mes .@npc_name$;
+	mes "Espero que lhe sejam úteis.";
+	mes "Agora vou lhe enviar de volta para a sua Dimensão.";
+	close2;
+	warp("geffen", 120, 63);
+	end;
+
+OnInstanceInit:
+OnDisable:
+	disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+	
+OnEnable:
+	instance_announce(instance_id(), "[Orc Hero]: Isso ainda não acabou, humanos. Eu restaurarei meus poderes e voltarei para levá-los ao fim!", bc_npc);
+	enablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+}

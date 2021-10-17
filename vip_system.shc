@@ -1,0 +1,32 @@
+/* ===============================================================
+                              Sistema VIP
+   ================================================================
+   ----------------------------------------------------------------
+                            COMPATIBILIDADE
+							   Hercules
+   ----------------------------------------------------------------
+                                VERSÕES
+                        1.0 Criação [QuodDG]
+   ----------------------------------------------------------------
+   unix_timestamp(timestampadd(DAY, 30, now()))
+ * ================================================================
+ */
+ 
+-	script	VIPSystem	-1,{
+	end;
+	
+OnPCLoginEvent:
+	#QDOVIP = 0;
+	//== Período de Testes
+	#QDOVIPTIME = gettimetick(2) + 86400;
+	//== +1 dia de VIP
+	if(getstatus(SC_CASH_PLUSEXP) == 1){
+		sc_end(SC_CASH_PLUSEXP);
+	}
+	if(getgmlevel() < 2 && #QDOVIPTIME > gettimetick(2)){
+		#QDOVIP = 1;
+		sc_end(SC_CASH_PLUSEXP);
+		sc_start(SC_CASH_PLUSEXP, (12 * 60 * 60000), 50);
+	}
+	end;
+}

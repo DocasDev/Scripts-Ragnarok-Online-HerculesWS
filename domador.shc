@@ -1,0 +1,286 @@
+//| ================================================================
+//|                       MONTARIA DE VELOCIDADE
+//| ================================================================
+//| ----------------------------------------------------------------
+//|                               AUTOR
+//|                              QuodDG
+//| ----------------------------------------------------------------
+//|                             DESCRIÇÃO
+//| ----------------------------------------------------------------
+//|              Este NPC dá aos jogadores o item RÉDEAS
+//| ----------------------------------------------------------------
+//|                              VERSÕES
+//|                      1.0 Criação [QuodDG]
+//| ----------------------------------------------------------------
+//| ================================================================
+
+
+geffen,127,48,0	script	Domador#sky	4_M_DST_MASTER,{
+	
+	if(countitem(12622) > 0){
+		mes "^FF8B00[= Domador =]^000000";
+		mes "Você não já veio aqui antes?";
+		mes "Eu tenho certeza que já nos conhecemos!";
+		close;
+	}
+	
+	mes "^FF8B00[= Domador =]^000000";
+	mes "Olá ^FF0000" + strcharinfo(0) + "^000000!";
+	mes "O que lhe traz aqui?";
+	next;
+	if(select("Quero aprender a montar!:Nada.") == 2){
+		mes "^FF8B00[= Domador =]^000000";
+		mes "Ok! Se mudar de ideia estarei aqui.";
+		close;
+	}
+	mes "^FF8B00[= Domador =]^000000";
+	mes "Muito bem!";
+	mes "Vejamos...";
+	mes "O secredo de tudo está em ter o que é necessário.";
+	mes "E isso é... Onde eu coloquei?";
+	next;
+	mes "^FF8B00[= Domador =]^000000";
+	mes "Encontrei!";
+	mes "Pegue essa " + getitemname(12622) + ".";
+	mes "Ela vai lhe ajudar bastante!";
+	next;
+	getitem 12622,1;
+	mes "^FF8B00[= Domador =]^000000";
+	mes "Aproveite o passeio!";
+	mes "Agora vai ficar me devendo um favor!";
+	mes "^FF0000:D^000000";
+	close;
+	end;
+}
+
+mid_campin,370,131,4	script	Cientista#gt13	4_F_SCIENCE,{
+	.@npcname$ = "^FF8B00[= Cientista =]^000000";
+	if(Class != Job_Mechanic && 
+		Class != Job_Mechanic_T){
+		mes .@npcname$;
+		mes "Hmmm...";
+		mes "Você não parece ser o tipo de pessoa que usa meus serviços!";
+		mes "hehe";
+		close;
+	}
+	mes .@npcname$;
+	mes "Olá ^FF0000" + strcharinfo(0) + "^000000!";
+	mes "O que você procura?";
+	next;
+	if(select("Nada:Quero um M.E.C.H.A.") == 1){
+		mes .@npcname$;
+		mes "Tudo bem...";
+		mes "Volte se precisar de algo.";
+		close;
+	}
+	callfunc("F_QDO_Mado_Gear", .@npcname$, 1000);
+	end;
+}
+
+malaya,303,337,3	duplicate(Cientista#gt13)	Cientista#gt31	4_F_SCIENCE
+
+geffen,112,48,3	script	Mercador#gt0	4_M_MERCAT1,{
+	.@npcname$ = "^FF8B00[= Mercador =]^000000";
+	.@price = 500;
+	if(Class != Job_Merchant && 
+		Class != Job_Blacksmith && 
+		Class != Job_Alchemist && 
+		Class != Job_Merchant_High && 
+		Class != Job_Whitesmith && 
+		Class != Job_Creator && 
+		Class != Job_Mechanic && 
+		Class != Job_Mechanic_T && 
+		Class != Job_Genetic && 
+		Class != Job_Genetic_T){
+		mes .@npcname$;
+		mes "Está olhando o que?";
+		close;
+		}
+	mes .@npcname$;
+	mes "Olá ^FF0000" + strcharinfo(0) + "^000000!";
+	mes "O que você procura?";
+	next;
+	switch(select("Nada:Quero comprar um carrinho") - 1){
+		case 1:
+			if(getskilllv(MC_PUSHCART) < 1){
+				mes .@npcname$;
+				mes "Você precisa aprender a Skill ^FF0000Pushcart^000000.";
+				close;
+			}
+			if(checkcart()){
+				mes .@npcname$;
+				mes "Você já tem um Carrinho.";
+				mes "O que pretende com mais um?";
+				close;
+			}
+			mes .@npcname$;
+			mes "Isso vai te custar uma grana.";
+			mes "Mas posso fazer o preço camarada para você.";
+			mes "Apenas " + .@price + "z, o que acha?";
+			next;
+			if(select("Está caro:Tudo bem") == 1){
+				mes .@npcname$;
+				mes "Não vai encontrar nada mais barato por aqui...";
+				close;
+			}
+			if(Zeny < .@price){
+				mes .@npcname$;
+				mes "Hahaha";
+				mes "Parece que não contou as moedas direito antes de vir aqui...";
+				close;
+			}
+			mes .@npcname$;
+			mes "Prontinho...";
+			mes "Aqui está o seu carrinho!";
+			close2;
+			Zeny -= .@price;
+			setcart(1);
+			break;
+		default:
+			mes .@npcname$;
+			mes "Ok! Mas não fique me encarando assim...";
+			mes "É estranho.";
+			close;
+			break;
+	}
+	end;
+}
+
+malaya,304,359,4	duplicate(Mercador#gt0)	Mercador#gt31	4_M_MERCAT1
+
+geffen,98,72,6	script	Adestradora#gt0	1_F_01,{
+	.@npcname$ = "^FF8B00[= Adestradora =]^000000";
+	mes .@npcname$;
+	mes "Olá ^FF0000" + strcharinfo(0) + "^000000!";
+	mes "Eu passei muito tempo estudando várias espécies.";
+	mes "Vejamos se há alguma compatível com você...";
+	next;
+	switch(Class){
+		case Job_Hunter:
+		case Job_Sniper:
+		case Job_Ranger:
+		case Job_Ranger_T:
+			callfunc("F_QDO_Adest_Falcon", .@npcname$);
+			break;
+		case Job_Knight:
+		case Job_Crusader:
+		case Job_Lord_Knight:
+		case Job_Paladin:
+		case Job_Royal_Guard:
+		case Job_Royal_Guard_T:
+			callfunc("F_QDO_Adest_Peco", .@npcname$);
+			break;
+		case Job_Rune_Knight:	
+		case Job_Rune_Knight_T:	
+			callfunc("F_QDO_Adest_Dragon", .@npcname$);
+			break;
+		default:
+			mes .@npcname$;
+			mes "Parece que não há nenhuma espécie compatível com sua profissão.";
+			close;
+			break;
+	}
+	end;
+}
+
+malaya,301,359,4	duplicate(Adestradora#gt0)	Adestradora#gt31	1_F_01
+
+function	script	F_QDO_Adest_Falcon	{
+	.@npcname$ = getarg(0);
+	if(getskilllv(HT_FALCON) < 1){
+		mes .@npcname$;
+		mes "Você precisa aprender a Skill ^FF0000Falconry Mastery^000000.";
+		close;
+	}
+	if(checkfalcon()){
+		mes .@npcname$;
+		mes "Você já tem um Falcão.";
+		mes "O que pretende com mais um?";
+		close;
+	}
+	mes .@npcname$;
+	mes "Cuide bem do seu Falcão.";
+	close2;
+	setfalcon(1);
+	return;
+}
+
+function	script	F_QDO_Adest_Peco	{
+	.@npcname$ = getarg(0);
+	if(getskilllv(KN_RIDING) < 1){
+		mes .@npcname$;
+		mes "Você precisa aprender a Skill ^FF0000Peco Peco Riding^000000.";
+		close;
+	}
+	if(checkmount()){
+		mes .@npcname$;
+		mes "Você já tem um Peco Peco.";
+		mes "O que pretende com mais um?";
+		close;
+	}
+	mes .@npcname$;
+	mes "Cuide bem do seu Peco Peco.";
+	close2;
+	setmount(MOUNT_PECO);
+	return;
+}
+
+function	script	F_QDO_Adest_Dragon	{
+	.@npcname$ = getarg(0);
+	if(getskilllv(RK_DRAGONTRAINING) < 1){
+		mes .@npcname$;
+		mes "Você precisa aprender a Skill ^FF0000Dragon Training^000000.";
+		close;
+	}
+	if(checkmount()){
+		mes .@npcname$;
+		mes "Você já tem um Dragão.";
+		mes "O que pretende com mais um?";
+		close;
+	}
+	mes .@npcname$;
+	mes "Cuide bem do seu Dragão.";
+	close2;
+	setarray(.@mount[0], MOUNT_DRAGON, MOUNT_DRAGON_GREEN, MOUNT_DRAGON_BROWN, MOUNT_DRAGON_GRAY, MOUNT_DRAGON_BLUE, MOUNT_DRAGON_RED);
+	setmount(.@mount[rand(getarraysize(.@mount))]);
+	return;
+}
+
+function	script	F_QDO_Mado_Gear	{
+	.@npcname$ = getarg(0);
+	.@price = getarg(1);
+	if(getskilllv(NC_MADOLICENCE) < 1){
+		mes .@npcname$;
+		mes "Você precisa aprender a Skill ^FF0000Madogear License^000000.";
+		close;
+	}
+	if(checkmount()){
+		mes .@npcname$;
+		mes "Você já tem um M.E.C.H.A..";
+		mes "O que pretende com mais um?";
+		close;
+	}
+	mes .@npcname$;
+	mes "Para monstar um M.E.C.H.A. vou precisar de " + .@price + "z.";
+	mes "Você tem essa quantia com você?";
+	next;
+	if(select("Ainda não:Com certeza") == 1){
+		mes .@npcname$;
+		mes "Tudo bem.";
+		mes "Volte quando conseguir.";
+		close;
+	}
+	if(Zeny < .@price){
+		mes .@npcname$;
+		mes "Você não tem dinheiro suficiente.";
+		close;
+	}
+	mes .@npcname$;
+	mes "Cuide bem do seu M.E.C.H.A..";
+	mes "Não esqueça de fazer a manutenção dele direitinho.";
+	mes "Hehe";
+	close2;
+	Zeny -= .@price;
+	setmount(MOUNT_MADO);
+	return;
+}

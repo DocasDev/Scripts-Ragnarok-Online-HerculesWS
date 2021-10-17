@@ -1,0 +1,761 @@
+/*
+ ================================================================
+                   Instância: Torneio Dimensional
+ ================================================================
+ ----------------------------------------------------------------
+                               AUTOR
+                              QuodDG
+ ----------------------------------------------------------------
+                              VERSÕES
+                       1.0 Criação [QuodDG]
+ ----------------------------------------------------------------
+ Map: 1@ge_st
+ Coin: Dimensional_Coin
+ ================================================================
+*/
+
+//======================
+//== Iniciador
+//======================
+
+gef_tower,66,97,2	script	Lucile#gest	4_F_LUCILE,{
+	.@npc_name$ = "^FF8B00[= Lucile =]^000000";
+	if(BaseLevel < 90){
+		mes .@npc_name$;
+		mes "Desculpe, você não duraria um minuto no torneio.";
+		mes "Hehe";
+		close;
+	}
+	if (questprogress(61808)) {
+		if(questprogress(61808, PLAYTIME) == 1){
+			mes .@npc_name$;
+			mes "Infelizmente a Fenda Dimensional se fechou, mas você poderá tentar novamente quando estiver aberta.";
+			close;
+		}
+		erasequest(61808);
+	}
+	mes .@npc_name$;
+	mes "Olá!";
+	mes "O que deseja?";
+	next;
+	if(select("Nada:Me fale sobre o ^0075E9Torneio Dimensional^000000") == 1){
+		mes .@npc_name$;
+		mes "Ok.";
+		mes "Adeus!";
+		close;
+	}
+	mes .@npc_name$;
+	mes "O ^0075E9Torneio Dimensional^000000 acontece todo dia em um Espaço Dimensional e reuni os participantes mais fortes entre as dimensões.";
+	next;
+	mes .@npc_name$;
+	mes "Os inscritos participam de lutas 1x1 ^AAAAAA(Player x Mob)^000000 por 13 rodadas.";
+	next;
+	mes .@npc_name$;
+	mes "A cada rodada que você ganha, recebrá uma quantidade de ^0075E9" + getitemname(Dimensional_Coin) + "^000000";
+	next;
+	mes .@npc_name$;
+	mes "Nem preciso dizer que os participantes são sempre muito fortes.";
+	mes "Deseja participar do ^0075E9Torneio Dimensional^000000?";
+	next;
+	if(select("Preciso me preparar:Com certeza") == 1){
+		mes .@npc_name$;
+		mes "Ok.";
+		mes "Adeus!";
+		close;
+	}
+	.@party_id = getcharid(CHAR_ID_PARTY);
+	if (!.@party_id) {
+		mes .@npc_name$;
+		mes "Você não está em um Grupo. Dessa forma meu dispositivo dimensional não irá funcionar.";
+		close;
+	}
+	if (getcharid(CHAR_ID_CHAR) != getpartyleader(.@party_id, 2)) {
+		mes .@npc_name$;
+		mes "Engraçadinho! Não vai funcionar se você não for o Líder do Grupo.";
+		close;
+	}
+	.@instance = instance_create("Torneio Dimensional", .@party_id);
+	if (.@instance >= 0) {
+		if (instance_attachmap("1@ge_st", .@instance) == "") {
+			mes .@npc_name$;
+			mes "Meu dispositivo está com mau funcionamento...";
+			mes "Talvez esteja sobrecarregado.";
+			mes "Vamos tentar de novo em alguns minutos.";
+			close2;
+			instance_destroy(.@instance);
+			end;
+		}
+		instance_set_timeout(7200, 10, .@instance);
+		instance_init(.@instance);
+	}
+	if(.@instance < 0 || has_instance("1@ge_st") == ""){
+		mes .@npc_name$;
+		mes "Meu dispositivo está com mau funcionamento...";
+		mes "Talvez esteja sobrecarregado.";
+		mes "Vamos tentar de novo em alguns minutos.";
+		close;
+	}
+	mes .@npc_name$;
+	mes "Muito bem, tudo está pronto.";
+	mes "Boa sorte ^0075E9" + strcharinfo(PC_NAME) + "^000000!";
+	close2;
+	setquest(61808);
+	warp("1@ge_st", 113, 48);
+	end;
+}
+
+//======================
+//== Loja
+//======================
+-	shop	loja_gest	-1,501:100
+
+1@ge_st,122,52,4	script	Loja#gest	4_F_KAFRA5,{
+	.nome_npc$ = "^FF8B00[= Loja =]^000000";
+	mes .nome_npc$;
+	mes "Olá, ^0075E9" + strcharinfo(PC_NAME) + "^000000!";
+	mes "Os itens que vendo podem ser comprados com ^0075E9" + getitemname(Dimensional_Coin) + "^000000.";
+	mes "^FF0000A Skill de desconto não funciona nesse shop^000000";
+	close2;
+	npcshopattach(.shopname$, 1);
+	callshop(.shopname$, 1);
+	end;
+
+OnBuyItem:
+	.@total = 0;
+	.@k = 0;
+	for(.@i = 0; .@i < getarraysize(@bought_nameid); .@i++){
+		for(.@j = 0; .@j < getarraysize(.itens); .@j += 2){
+			if(@bought_nameid[.@i] == .itens[.@j]){
+				setarray(.@buying[.@k], .itens[.@j], @bought_quantity[.@i]);
+				.@total += .itens[.@j + 1] * @bought_quantity[.@i];
+				.@k += 2;
+				break;
+			}
+		}
+	}
+	if(countitem(Dimensional_Coin) < .@total){
+		dispbottom("Você não tem [" + getitemname(Dimensional_Coin) + "] suficiente.", 0xFF0000);
+		end;
+	}
+	delitem(Dimensional_Coin, .@total);
+	dispbottom("Você gastou " + .@total + "x [" + getitemname(Dimensional_Coin) + "].");
+	for(.@i = 0; .@i < getarraysize(.@buying); .@i += 2){
+		getitem(.@buying[.@i], .@buying[.@i + 1]);
+	}
+	end;
+	
+OnInstanceInit:
+	deletearray(.itens[0], getarraysize(.itens));
+	setarray(.itens[0],
+		Magic_Reflector,			900,
+		Encyclopedia_Revision,		900,
+		Body_Power_Up_Ring,			1350,
+		Ring_Of_Spell_Explosion,	1350,
+		Anti_Magic_Suit,			1800,
+		Geffen_Mage_Robe,			1800
+	);
+	
+	.shopname$ = "loja_gest";
+	npcshopdelitem .shopname$, 501;
+	
+	for(.@i = 0; .@i < getarraysize(.itens); .@i += 2){
+		npcshopadditem .shopname$, .itens[.@i], .itens[.@i + 1];
+	}
+OnDisable:
+	disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+	
+OnEnable:
+	enablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+}
+
+//======================
+//== map_zone and flags
+//======================
+
+1@ge_st	mapflag	zone	Memorial Dungeon
+
+//======================
+//== Warps
+//======================
+
+1@ge_st,127,48,0	script	#gest_w1	WARPNPC,1,1,{
+	warp("geffen", 120, 63);
+	end;
+OnInstanceInit:
+OnDisable:
+	disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+	
+OnEnable:
+	enablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+}
+
+//======================
+//== Controlador
+//======================
+
+1@ge_st,1,1,0	script	#gesttimerdie	FAKE_NPC,{
+	end;
+
+OnStartTimer:
+	startnpctimer();
+	end;
+
+OnTimer1000:
+	attachrid('gest_acc_id);
+	if(Hp == 0){
+		dispbottom("Você caiu. Se não se levantar em 10 segundos irá perder.");
+		sleep2(10000);
+		if (Hp == 0) {
+			stopnpctimer();
+			donpcevent(instance_npcname("Juíz#gest") + "::OnFail");
+		}
+	}
+	detachrid();
+	setnpctimer(0);
+	end;
+}
+
+1@ge_st,109,48,6	script	Juíz#gest	4_M_CHNMAN,{
+	.@npc_name$ = "^FF8B00[= Juíz =]^000000";
+	//O personagem venceu o torneio
+	if('gest_done == 1 && 'gest_step > 13){
+		mes .@npc_name$;
+		mes "Meus parabéns!";
+		mes "Você é " + (Sex ? "o Grande Campeão" : "a Grande Campeã") + ".";
+		mes "Aqui está o seu prêmio.";
+		close2;
+	}
+	//O personagem foi derrotado o torneio
+	else if('gest_done == 1 && 'gest_step <= 13){
+		mes .@npc_name$;
+		mes "É uma pena você não ter vencido todas!";
+		mes "Isso acontece.";
+		if('gest_step > 1){
+			mes "Veja pela lado bom, pelo menos você não perdeu na primeira.";
+			mes "Você ainda irá receber a recompensa " + ('gest_step > 2 ? "pelas suas vitórias." : "pela sua vitória.");
+		}
+		close2;
+	}
+	if('gest_done == 1){
+		if('gest_step > 1){
+			//Entrega a recompensa
+			getitem(Dimensional_Coin, callfunc("F_QDO_Get_Rewards", 'gest_step - 1));
+		}
+		donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnDisable");
+		donpcevent(instance_npcname("Loja#gest") + "::OnEnable");
+		donpcevent(instance_npcname("#gest_w1") + "::OnEnable");
+		//Habilita os demais NPCs
+		donpcevent(instance_npcname("Loki#gest") + "::OnEnable");
+		donpcevent(instance_npcname("Iris#gest") + "::OnEnable");
+		donpcevent(instance_npcname("Chaos#gest") + "::OnEnable");
+		donpcevent(instance_npcname("Fenrir#gest") + "::OnEnable");
+		donpcevent(instance_npcname("Lydia#gest") + "::OnEnable");
+		end;
+	}
+	if('gest_step == 0){
+		mes .@npc_name$;
+		mes "Olá participante!";
+		mes "Para fazer sua inscrição, escolha a sua categoria.";
+		next;
+		sc_end(SC_GEFFEN_MAGIC1);
+		sc_end(SC_GEFFEN_MAGIC2);
+		sc_end(SC_GEFFEN_MAGIC3);
+		switch(select("Dano Físico:Dano Mágico:Resistência")){
+			case 1:
+				sc_start4 SC_GEFFEN_MAGIC1, 3600000, 5, 0, 0, 0, 10000, 1;
+				break;
+			case 2:
+				sc_start4 SC_GEFFEN_MAGIC2, 3600000, 5, 0, 0, 0, 10000, 1;
+				break;
+			case 3:
+				sc_start4 SC_GEFFEN_MAGIC3, 3600000, 5, 0, 0, 0, 10000, 1;
+				break;
+		}
+		mes .@npc_name$;
+		mes "Muito bem, agora me diga o seu nome.";
+		next;
+		select(strcharinfo(PC_NAME));
+		'gest_acc_id = getcharid(CHAR_ID_ACCOUNT);
+		mes .@npc_name$;
+		mes "Muito bem.";
+		mes "Sua inscrição foi registrada.";
+		mes "Aguarde o início da Primeira Rodada.";
+		close2;
+		donpcevent(instance_npcname("#gesttimerdie") + "::OnStartTimer");
+		'gest_step = 1;
+	}
+	else if('gest_step == 3 || 'gest_step == 6 || 'gest_step == 9 || 'gest_step >= 12){
+		mes .@npc_name$;
+		mes "Olá, " + strcharinfo(PC_NAME) + ".";
+		if('gest_step == 13){
+			mes "Meus parabéns!";
+			mes "Você chegou na final.";
+		}
+		else{
+			mes "Você está indo muito bem.";
+		}
+		mes "Deixe eu curar você para que possa continuar.";
+		close2;
+		skilleffect(28, MaxHp);
+		percentheal(100, 100);
+	}
+	else{
+		mes .@npc_name$;
+		mes "Você está indo muito bem.";
+		mes "Boa sorte na próxima rodada.";
+		close2;
+	}
+	donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnFightStart");
+	donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnDisable");
+	end;
+
+OnInstanceInit:
+	'gest_step = 0;
+	'gest_done = 0;
+	end;
+	
+/*OnPCDieEvent:
+	if (strcharinfo(PC_MAP) == "1@ge_st" || strcharinfo(PC_MAP) == instance_mapname("1@ge_st", instance_id())) {
+		dispbottom("Você caiu. Se não se levantar em 10 segundos irá perder.");
+		sleep2(10000);
+		if (Hp >= 1) {
+			end; 
+		}
+		if (Hp == 0) {
+			donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnFail");
+			end;
+		}
+	}
+	end;*/
+	
+OnComplete:
+	'gest_done = 1;
+	//Para o contador de tempo
+	donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnStop");
+	//Anexa o personagem
+	attachrid('gest_acc_id);
+	//Anuncia o vencedor
+	instance_announce(instance_id(), "[Narrador]: Temos um Campeão pessoal. [" + strcharinfo(PC_NAME) + "] vendeu todas as lutas!", bc_npc);
+	sleep2(2000);
+	//Desanexa o personagem
+	detachrid();
+	donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnEnable");
+	end;
+	
+OnFail:
+	'gest_done = 1;
+	//Para o contador de tempo
+	donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnStop");
+	//Elimina o oponente da arena
+	donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnKillMob");
+	//Habilita o controlador
+	donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnEnable");
+	sleep(2000);
+	//Anexa o personagem
+	attachrid('gest_acc_id);
+	//Anuncia o vencedor
+	instance_announce(instance_id(), "[Narrador]: A luta da Rodada [" + 'gest_step + "] acabou. [" + strcharinfo(PC_NAME) + "] foi derrotado!", bc_npc);
+	//Desanexa o personagem
+	detachrid();
+	end;
+	
+OnTimeout:
+	instance_announce(instance_id(), "[Narrador]: O tempo acabou!", bc_npc);
+	//Sinaliza a derrota do personagem
+	donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnFail");
+	end;
+	
+OnFightStart:
+	if(callfunc("QDO_F_Get_respawn_step_gest", 'gest_step, .@respawn_info) == 0){
+		instance_announce(instance_id(), "Erro na escalação da rodada.", bc_npc);
+		end;
+	}
+	.@mob_id = .@respawn_info[0];
+	//Anuncia o início da luta
+	instance_announce(instance_id(), "[Narrador]: A luta da Rodada [" + 'gest_step + "] vai começar. Que vença o melhor!", bc_npc);
+	sleep(3000);
+	//Cria o oponente
+	monster(instance_mapname("1@ge_st"), 105, 48, strmobinfo(2, .@mob_id), .@mob_id, 1, instance_npcname(strnpcinfo(NPC_NAME))+"::OnFighterDead");
+	//Inicia o contador de tempo
+	setnpctimer(0);
+	initnpctimer();
+	end;
+	
+OnStop:
+	stopnpctimer();
+	setnpctimer(0);
+	end;
+	
+OnTimer5000:
+	//Teste
+	//donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnTimeout");
+	end;
+	
+OnTimer60000:
+	instance_announce(instance_id(), "[Narrador]: Completamos 1 minuto de luta e ambos os lados estão resistindo.", bc_npc);
+	end;
+	
+OnTimer120000:
+	instance_announce(instance_id(), "[Narrador]: Chegamos a marca de 2 minutos e parece que nenhum dos lados estão afim de ceder.", bc_npc);
+	end;
+	
+OnTimer180000:
+	//Se for a última rodada, o tempo é de 5 minutos
+	if('gest_step == 12){
+		instance_announce(instance_id(), "[Narrador]: 3 minutos de luta e a plateia está indo à loucura.", bc_npc);
+		end;
+	}
+	//Tempo esgotado
+	donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnTimeout");
+	end;
+	
+OnTimer240000:
+	instance_announce(instance_id(), "[Narrador]: Isso é incrível. 4 minutos e ambos estão indo ao limite.", bc_npc);
+	end;
+	
+OnTimer300000:
+	//Tempo esgotado
+	donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnTimeout");
+	end;
+	
+OnKillMob:
+	killmonster(instance_mapname("1@ge_st"), instance_npcname(strnpcinfo(NPC_NAME)) + "::OnFighterDead");
+	end;
+	
+OnFighterDead:
+	if(mobcount(instance_mapname("1@ge_st"), instance_npcname(strnpcinfo(NPC_NAME)) + "::OnFighterDead") > 0){
+		end;
+	}
+	//Desloca o participante para o início da arena
+	//instance_warpall(instance_mapname("1@ge_st"), 116, 48);
+	sleep(1000);
+	//Finaliza o torneio
+	if('gest_step == 13){
+		'gest_step++;
+		donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnComplete");
+		end;
+	}
+	//Anexa o personagem
+	attachrid('gest_acc_id);
+	//Anuncia o vencedor
+	instance_announce(instance_id(), "[Narrador]: A luta da Rodada [" + 'gest_step + "] acabou. [" + strcharinfo(PC_NAME) + "] vendeu!", bc_npc);
+	//Desanexa o personagem
+	detachrid();
+	sleep(2000);
+	//Prepara para iniciar a próxima rodada
+	'gest_step++;
+	//Para o contador de tempo
+	donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnStop");
+	donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnEnable");
+	end;
+	
+OnDisable:
+	movenpc(instance_npcname(strnpcinfo(NPC_NAME)), 1, 1);
+	//disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+	
+OnEnable:
+	//Desloca o participante para o início da arena
+	instance_warpall(instance_mapname("1@ge_st"), 113, 48);
+	//Move o NPC para o centro da arena
+	movenpc(instance_npcname(strnpcinfo(NPC_NAME)), 109, 48);
+	//enablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+}
+
+//======================
+//== NPCs
+//======================
+
+1@ge_st,108,55,6	script	Loki#gest	4_M_ROKI2,{
+	.@npc_name$ = "^FF8B00[= Loki =]^000000";
+	cutin "ep14_roki01.bmp",2;
+	setarray(.@items[0],
+		Red_Potion,
+		Orange_Potion,
+		Yellow_Potion,
+		White_Potion,
+		Blue_Potion,
+		Green_Potion,
+		Seed_Of_Yggdrasil,
+		Yggdrasilberry
+	);
+	mes .@npc_name$;
+	if('gest_step <= 13){
+		mes "Trabalhe suas derrotas para que se tornem vitórias no futuro.";
+	}
+	else{
+		mes "A sua pontuação foi muito boa.";
+	}
+	mes "Por favor, aceite este presente.";
+	close2;
+	getitem(.@items[rand(getarraysize(.@items))], 1);
+	cutin "", 255;
+	donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnDisable");
+	end;
+	
+OnInstanceInit:
+OnDisable:
+	disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+	
+OnEnable:
+	enablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+}
+
+1@ge_st,110,57,6	script	Lydia#gest	4_F_LYDIA,{
+	.@npc_name$ = "^FF8B00[= Lydia =]^000000";
+	cutin "lydia_a.bmp",2;
+	setarray(.@items[0],
+		Red_Potion,
+		Orange_Potion,
+		Yellow_Potion,
+		White_Potion,
+		Blue_Potion,
+		Green_Potion,
+		Seed_Of_Yggdrasil,
+		Yggdrasilberry
+	);
+	mes .@npc_name$;
+	if('gest_step <= 13){
+		mes "Mesmo que você tenha perdido, eu quero te dar uma recompensa.";
+	}
+	else{
+		mes "Você foi muito bem hoje!";
+		mes "Eu quero te dar uma recompensa.";
+	}
+	close2;
+	getitem(.@items[rand(getarraysize(.@items))], 1);
+	cutin "", 255;
+	donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnDisable");
+	end;
+	
+OnInstanceInit:
+OnDisable:
+	disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+	
+OnEnable:
+	enablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+}
+
+1@ge_st,113,56,6	script	Fenrir#gest	4_F_FENRIR,{
+	.@npc_name$ = "^FF8B00[= Fenrir =]^000000";
+	cutin "fenrir_a.bmp",2;
+	setarray(.@items[0],
+		Red_Potion,
+		Orange_Potion,
+		Yellow_Potion,
+		White_Potion,
+		Blue_Potion,
+		Green_Potion,
+		Seed_Of_Yggdrasil,
+		Yggdrasilberry
+	);
+	mes .@npc_name$;
+	mes "Foi uma boa luta.";
+	if('gest_step <= 13){
+		mes "Pegue este presente.";
+		close2;
+		getitem(.@items[rand(getarraysize(.@items))], 1);
+	}
+	else{
+		mes "Na próxima eu não vou perder!";
+		close2;
+	}
+	cutin "", 255;
+	donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnDisable");
+	end;
+	
+OnInstanceInit:
+OnDisable:
+	disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+	
+OnEnable:
+	enablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+}
+
+1@ge_st,116,57,4	script	Chaos#gest	4_M_CHAOS,{
+	.@npc_name$ = "^FF8B00[= Chaos =]^000000";
+	cutin "hero_chaos_01.bmp",2;
+	setarray(.@items[0],
+		Red_Potion,
+		Orange_Potion,
+		Yellow_Potion,
+		White_Potion,
+		Blue_Potion,
+		Green_Potion,
+		Seed_Of_Yggdrasil,
+		Yggdrasilberry
+	);
+	mes .@npc_name$;
+	if('gest_step <= 13){
+		mes "Não dá para ganhar todas, não é!?";
+	}
+	else{
+		mes "Você foi muito impressionante hoje.";
+	}
+	mes "Eu quero te dar um presente.";
+	close2;
+	getitem(.@items[rand(getarraysize(.@items))], 1);
+	cutin "", 255;
+	donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnDisable");
+	end;
+	
+OnInstanceInit:
+OnDisable:
+	disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+	
+OnEnable:
+	enablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+}
+
+1@ge_st,118,55,4	script	Iris#gest	4_F_IRIS,{
+	.@npc_name$ = "^FF8B00[= Iris =]^000000";
+	cutin "hero_iris_01.bmp",2;
+	setarray(.@items[0],
+		Red_Potion,
+		Orange_Potion,
+		Yellow_Potion,
+		White_Potion,
+		Blue_Potion,
+		Green_Potion,
+		Seed_Of_Yggdrasil,
+		Yggdrasilberry
+	);
+	mes .@npc_name$;
+	mes "Eu gostei de assistir " + ('gest_step > 2 ? "suas lutas." : "sua luta.");
+	if('gest_step <= 13){
+		mes "Má sorte desta vez, hein?.";
+		mes "Desejo-lhe sorte na próxima vez.";
+		mes "Pegue isso para te animar.";
+	}
+	else{
+		mes "Continue se esforçando para ser sempre o melhor.";
+		mes "Aceite este presente.";
+	}
+	close2;
+	getitem(.@items[rand(getarraysize(.@items))], 1);
+	cutin "", 255;
+	donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnDisable");
+	end;
+	
+OnInstanceInit:
+OnDisable:
+	disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+	
+OnEnable:
+	enablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+}
+
+//======================
+//== Funcstions
+//======================
+
+//<step><respawn_info>
+function	script	QDO_F_Get_respawn_step_gest	{
+	switch(getarg(0)){
+		case 1:
+			set getelementofarray(getarg(1), 0), GEFFEN_MAGE_1;
+			return 1;
+		case 2:
+			set getelementofarray(getarg(1), 0), GEFFEN_MAGE_2;
+			return 1;
+		case 3:
+			switch(rand(3)){
+				case 0:
+					set getelementofarray(getarg(1), 0), GEFFEN_MAGE_3_1;
+					return 1;
+				case 1:
+					set getelementofarray(getarg(1), 0), GEFFEN_MAGE_3_2;
+					return 1;
+				case 2:
+					set getelementofarray(getarg(1), 0), GEFFEN_MAGE_3_3;
+					return 1;
+			}
+			break;
+		case 4:
+			set getelementofarray(getarg(1), 0), GEFFEN_MAGE_4;
+			return 1;
+		case 5:
+			set getelementofarray(getarg(1), 0), GEFFEN_MAGE_5;
+			return 1;
+		case 6:
+			set getelementofarray(getarg(1), 0), GEFFEN_MAGE_6;
+			return 1;
+		case 7:
+			set getelementofarray(getarg(1), 0), GEFFEN_MAGE_7;
+			return 1;
+		case 8:
+			set getelementofarray(getarg(1), 0), GEFFEN_MAGE_8;
+			return 1;
+		case 9:
+			set getelementofarray(getarg(1), 0), GEFFEN_MAGE_9;
+			return 1;
+		case 10:
+			set getelementofarray(getarg(1), 0), GEFFEN_MAGE_10;
+			return 1;
+		case 11:
+			set getelementofarray(getarg(1), 0), GEFFEN_MAGE_11;
+			return 1;
+		case 12:
+			if(rand(2) == 0){
+				set getelementofarray(getarg(1), 0), GEFFEN_MAGE_12;
+			}
+			else{
+				set getelementofarray(getarg(1), 0), FEI_KANABIAN;
+				//set getelementofarray(getarg(1), 1), ALPHONSE;
+				//set getelementofarray(getarg(1), 2), ALPHONSE_JR;
+			}
+			return 1;
+		case 13:
+			set getelementofarray(getarg(1), 0), GEFFEN_FENRIR;
+			return 1;
+	}
+	return 0;
+}
+
+//<step>
+function	script	F_QDO_Get_Rewards	{
+	.@qty = 0;
+	switch(getarg(0)){
+		case 1:
+		case 2:
+		case 3:
+		case 4:
+		case 5:
+		case 6:
+		case 7:
+		case 8:
+		case 9:
+		case 10:
+			freeloop(1);
+			for(.@i = 1; .@i <= getarg(0); .@i++){
+				.@qty += .@i;
+			}
+			freeloop(0);
+			break;
+		case 11:
+			.@qty = 70;
+			break;
+		case 12:
+			.@qty = 90;
+			break;
+		case 13:
+			.@qty = 110;
+			break;
+	}
+	return .@qty;
+}

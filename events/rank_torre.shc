@@ -1,0 +1,474 @@
+/*
+ ================================================================
+                             Rank Torre
+ ================================================================
+ ----------------------------------------------------------------
+                               AUTOR
+                              QuodDG
+ ----------------------------------------------------------------
+                              VERSÕES
+                      1.0 Criação [QuodDG]
+ ----------------------------------------------------------------
+ CREATE TABLE `gt_rank_torre` (
+   `acc_id` int(11) NOT NULL,
+   `char_id` int(11) NOT NULL,
+   `mes` int(11) NOT NULL,
+   `ano` int(11) NOT NULL,
+   `pontos` int(11) NOT NULL,
+   `complete_time` int(11) NOT NULL,
+   PRIMARY KEY (`acc_id`,`char_id`,`mes`,`ano`)
+ ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+ ================================================================
+*/
+
+//======================
+//== Iniciador
+//======================
+
+gef_tower,38,175,4	script	Rank Torre#0	4_M_ROKI2,{
+	.npc_name$ = "^FF8B00[= Rufus =]^000000";
+	mes .npc_name$;
+	mes "Olá, ^0075E9" + strcharinfo(PC_NAME) + "^000000!";
+	mes "Eu sou o responsável pelo ^0075E9Rank da Torre^000000.";
+	mes "Uma vez por mês, você pode fazer o ^0075E9Desafio da Torre^000000 para determinar sua pontuação no Rank.";
+	next;
+	mes .npc_name$;
+	mes "No último dia de cada mês, você poderá receber uma recompensa, caso esteja entre os " + $@qdo_qt_rank_torre + " melhores Heróis/Heroínas da ^0075E9Grande Torre^000000.";
+	mes "O que deseja?";
+	next;
+	.@menu$ = "Fazer Desafio:Ver o Rank";
+	if(gettime(GETTIME_DAYOFMONTH) == $@qdo_day_recomp_rank_torre && 
+		qdo_month_recom_rank_torre != gettime(GETTIME_MONTH)){
+		.@menu$ += ":Receber recompensa";
+	}
+	switch(select(.@menu$)){
+		case 1:
+			callsub(S_DESAFIO);
+			break;
+		case 2:
+			callsub(S_VIEW);
+			break;
+		case 3:
+			callsub(S_RECOM);
+			break;
+		default:
+			mes .npc_name$;
+			mes "Tudo bem...";
+			mes "Adeus.";
+			close;
+			break;
+	}
+	end;
+	
+S_DESAFIO:
+	if(gettime(GETTIME_DAYOFMONTH) == $@qdo_day_recomp_rank_torre){
+		mes .npc_name$;
+		mes "O ^0075E9Desafio da Torre^000000 não está disponível hoje.";
+		close;
+	}
+	//<individual><char_id><rank$>
+	if(callfunc("F_QDO_get_rank_torre", true, getcharid(CHAR_ID_CHAR), .@rank$) == 1){
+		mes .npc_name$;
+		mes "Você já realizou o ^0075E9Desafio da Torre^000000 este mês.";
+		close;
+	}
+	mes .npc_name$;
+	mes "O ^0075E9Desafio da Torre^000000 consiste em você derrotar, sozinho(a), os Chefes de Cada Andar que existe atualmente na ^0075E9Grande Torre^000000.";
+	next;
+	mes .npc_name$;
+	mes "Para cada Chefe derrotado, você ganha uma pontuação. Caso você seja derrotado, aguarde 10 segundos, para poder finalizar o ^0075E9Desafio da Torre^000000 com a Gerenciadora do desafio.";
+	next;
+	mes .npc_name$;
+	mes "Caso saia da Sala do Desafio, sem falar com a Gerenciadora, você perderá os pontos que acumulou.";
+	mes "Está pronto(a)?";
+	next;
+	if(select("Não:Sim") == 1){
+		mes .npc_name$;
+		mes "Tudo bem!";
+		mes "Volte quando estiver.";
+		close;
+	}
+	.@party_id = getcharid(CHAR_ID_PARTY);
+	if (!.@party_id) {
+		mes .npc_name$;
+		mes "É necessário que você esteja em um Grupo.";
+		close;
+	}
+	if (getcharid(CHAR_ID_CHAR) != getpartyleader(.@party_id, 2)) {
+		mes .npc_name$;
+		mes "É necessário que você seja o Líder do Grupo.";
+		close;
+	}
+	.@instance = instance_create("Desafio da Torre", .@party_id);
+	if (.@instance >= 0) {
+		if (instance_attachmap("1@dth3", .@instance) == "") {
+			mes .npc_name$;
+			mes "Houve algo de errado.";
+			mes "Vamos tentar de novo em alguns minutos.";
+			close2;
+			instance_destroy(.@instance);
+			end;
+		}
+		instance_set_timeout(3600, 10, .@instance);
+		instance_init(.@instance);
+	}
+	if(.@instance < 0 || has_instance("1@dth3") == ""){
+		mes .npc_name$;
+		mes "Houve algo de errado.";
+		mes "Vamos tentar de novo em alguns minutos.";
+		close;
+	}
+	mes .npc_name$;
+	mes "Você será levado(a) para a Sala do Desafio agora.";
+	mes "Boa sorte!";
+	close2;
+	warp("1@dth3", 70, 58);
+	end;
+	
+S_VIEW:
+	//<individual><char_id><rank$>
+	if(callfunc("F_QDO_get_rank_torre", false, 0, .@rank$) == 0){
+		mes .npc_name$;
+		mes "Parece que ninguém fez o Desafio este mês.";
+		close;
+	}
+	mes .npc_name$;
+	mes "Esse é o Rank dos " + $@qdo_qt_rank_torre +  " maiores Heróis da Torre.";
+	mes "Confira a tabela:";
+	next;
+	mes .npc_name$;
+	for(.@i = 0; .@i < getarraysize(.@rank$); .@i++){
+		.@primary_color$ = .@i <= 2 ? "^000000" : "^999999";
+		.@selected_color$ = "^0075E9";
+		//[0]position	[1]name	[2]acc_id	[3]char_id	[4]mes	[5]ano	[6]pontos
+		explode(.@info$, .@rank$[.@i], "|");
+		mes (getcharid(CHAR_ID_CHAR) == atoi(.@info$[3]) ? .@selected_color$ : .@primary_color$) + .@info$[0] + "º - " + .@info$[1] + ": " + .@info$[6] + .@primary_color$;
+		if(.@i == 2){
+			mes "^000000--------------" + .@primary_color$;
+		}
+	}
+	close2;
+	end;
+
+S_RECOM:
+	//<individual><char_id><rank$>
+	if(callfunc("F_QDO_get_rank_torre", true, getcharid(CHAR_ID_CHAR), .@rank$) == 0){
+		mes .npc_name$;
+		mes "Seu nome não aparece no ^0075E9Rank da Torre^000000.";
+		close;
+	}
+	//[0]position	[1]name	[2]acc_id	[3]char_id	[4]mes	[5]ano	[6]pontos
+	explode(.@info$, .@rank$[0], "|");
+	.@position = atoi(.@info$[0]);
+	//.@acc_id = atoi(.@info$[2]);
+	//.@char_id = atoi(.@info$[3]);
+	//.@mes = atoi(.@info$[4]);
+	//.@ano = atoi(.@info$[5]);
+	//.@pontos = atoi(.@info$[6]);
+	//Verifica se o personagem já recebeu a recompensa
+	if(qdo_month_recom_rank_torre == gettime(GETTIME_MONTH)){
+		mes .npc_name$;
+		mes "Você já recebeu sua recompensa...";
+		close;
+	}
+	//Verifica se o personagem está no Rank
+	if(.@position > 0 && .@position <= $@qdo_qt_rank_torre){
+		mes .npc_name$;
+		mes "Parabéns Herói!";
+		mes "Aqui está sua recompensa pela sua bravura.";
+		next;
+		//Entrega a recompensa
+		.@qty = callfunc("F_QDO_get_recomp_rank_torre", .@position);
+		getitem($@qdo_coin_town, .@qty);
+		//Seta o número do mês em que a recompensa foi entregue
+		qdo_month_recom_rank_torre = gettime(GETTIME_MONTH);
+		mes .npc_name$;
+		mes "Espero ver você por aqui no próximo mês, novamente.";
+		close;
+	}else{
+		mes .npc_name$;
+		mes "Você não alcançou uma posição satisfatória.";
+		close;
+	}
+	end;
+
+OnInit:
+	.@v = 0;
+	for(.@i = 0; .@i <= 34; .@i++){
+		//('step / 10 + 1) * 100
+		.@v += (.@i / 10 + 1) * 50;
+	}
+	//announce(">> " + .@v, bc_all);
+	//Quantidade de Personagens no Rank Torre
+	$@qdo_qt_rank_torre = 10;
+OnHour00:
+	callfunc("F_QDO_Configure_rank_torre_day");
+	end;
+}
+
+mid_campin,95,134,4	duplicate(Rank Torre#0)	Rank Torre#13	4_M_ROKI2
+malaya,266,367,6	duplicate(Rank Torre#0)	Rank Torre#31	4_M_ROKI2
+
+//======================
+//== map_zone and flags
+//======================
+
+1@dth3	mapflag	zone	Memorial Dungeon
+
+//======================
+//== Controlador
+//======================
+
+1@dth3,1,1,0	script	#dthtimerdie	FAKE_NPC,{
+	end;
+
+OnStartTimer:
+	startnpctimer();
+	end;
+
+OnTimer1000:
+	attachrid('acc_id);
+	if(Hp == 0){
+		dispbottom("Você foi derrotado. Aguarde 10 segundos para falar com a Gerenciadora ou levante-se sozinho e continue.");
+		sleep2(10000);
+		if (Hp == 0) {
+			stopnpctimer();
+			donpcevent(instance_npcname("#dthcontroller") + "::OnEnd");
+			donpcevent(instance_npcname("#dthcontroller") + "::OnKillMob");
+			donpcevent(instance_npcname("Gerenciadora#dth") + "::OnEnable");
+			instance_warpall(instance_mapname("1@dth3"), 70, 58);
+		}
+	}
+	detachrid();
+	setnpctimer(0);
+	end;
+}
+
+1@dth3,1,1,0	script	#dthcontroller	FAKE_NPC,{
+	end;
+
+OnInstanceInit:
+	'time_start = gettimetick(2);
+	'time_end = 0;
+	'step = 0;
+	'points = 0;
+	'acc_id = 0;
+	end;
+
+OnKillMob:
+	killmonster(instance_mapname("1@dth3"), instance_npcname(strnpcinfo(NPC_NAME)) + "::OnBossDead");
+	end;
+
+OnSummon:
+	.@boss_id = atoi($@qdo_maps$['step * $@qdo_maps_columns + 4]);
+	if(.@boss_id == 0){
+		.@boss_id = BARRICADE; //CHIMERA
+		.@max_hp = 1000 + ('step / 10 * 1000);
+		instance_announce(instance_id(), "Destrua a Barricada para continuar.", bc_npc);
+	}
+	else{
+		instance_announce(instance_id(), "O Chefe da [ Rodada " + 'step + " ] irá aparecer em 10 segundos.", bc_npc);
+		sleep(10000);
+	}
+	if('step > 10){
+		.@mode = 2;
+	}
+	.@boss = monster(instance_mapname("1@dth3"), 70, 67, strmobinfo(2, .@boss_id), .@boss_id, 1, instance_npcname(strnpcinfo(NPC_NAME)) + "::OnBossDead", .@mode);
+	if(.@max_hp > 0){
+		setunitdata(.@boss, UDT_MAXHP, .@max_hp);
+		setunitdata(.@boss, UDT_HP, .@max_hp);
+	}
+	end;
+	
+OnBossDead:
+	if(mobcount(instance_mapname("1@dth3"), instance_npcname(strnpcinfo(NPC_NAME)) + "::OnBossDead") > 0){
+		end;
+	}
+	'points += ('step / 10 + 1) * 50;
+	if($@qdo_ultimo_andar > 'step){
+		'step++;
+		donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnSummon");
+	}
+	else{
+		donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnEnd");
+		donpcevent(instance_npcname("Gerenciadora#dth") + "::OnEnable");
+	}
+	end;
+	
+OnEnd:
+	'time_end = gettimetick(2);
+	'points -= (('time_end - 'time_start) / 4);
+	if('points < 0){
+		'points = 0;
+	}
+	end;
+}
+
+//======================
+//== NPCs
+//======================
+
+1@dth3,70,67,4	script	Gerenciadora#dth	4W_F_KAFRA2,{
+	.npc_name$ = "^FF8B00[= Gerenciadora =]^000000";
+	dispbottom(">> [" + strcharinfo(PC_MAP) + "] - [" + instance_mapname("1@dth3") + "]");
+	mes .npc_name$;
+	mes "Olá, ^0075E9" + strcharinfo(PC_NAME) + "^000000!";
+	if('step == 0){
+		mes "Está na hora de começar seu Desafio.";
+		mes "Prepare-se!";
+		close2;
+		'acc_id = getcharid(CHAR_ID_ACCOUNT);
+		donpcevent(instance_npcname("#dthtimerdie") + "::OnStartTimer");
+		callfunc("F_QDO_set_rank_torre", getcharid(CHAR_ID_ACCOUNT), getcharid(CHAR_ID_CHAR), 0, 0);
+		donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnDisable");
+		donpcevent(instance_npcname("#dthcontroller") + "::OnSummon");
+		end;
+	}
+	if($@qdo_ultimo_andar == 'step){
+		mes "Você conseguiu!";
+		mes "Completou o ^0075E9Desafio da Torre^000000.";
+		mes "Sua pontuação foi: " + 'points + ".";
+		next;
+		mes .npc_name$;
+		mes "Vou lhe levar de volta agora.";
+		mes "Não esqueça de verificar a sua posição no ^0075E9Rank da Torre^000000";
+		mes "E pegar sua recompensa no último dia do mês.";
+		close2;
+		//<acc_id><char_id><pontos><complete_time>
+		callfunc("F_QDO_set_rank_torre", getcharid(CHAR_ID_ACCOUNT), getcharid(CHAR_ID_CHAR), 'points, ('time_end - 'time_start));
+		warp("geffen", 120, 63);
+	}
+	else{
+		mes "Você lutou bem.";
+		mes "Infelizmente não completou o ^0075E9Desafio da Torre^000000.";
+		mes "Sua pontuação foi: " + 'points + ".";
+		next;
+		mes .npc_name$;
+		mes "Vou lhe levar de volta agora.";
+		mes "Não esqueça de verificar a sua posição no ^0075E9Rank da Torre^000000";
+		mes "E pegar sua recompensa no último dia do mês.";
+		close2;
+		//<acc_id><char_id><pontos><complete_time>
+		callfunc("F_QDO_set_rank_torre", getcharid(CHAR_ID_ACCOUNT), getcharid(CHAR_ID_CHAR), 'points, ('time_end - 'time_start));
+		warp("geffen", 120, 63);
+	}
+	instance_destroy();
+	end;
+
+OnDisable:
+	disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+	
+OnEnable:
+	enablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+}
+
+//======================
+//== Functions
+//======================
+
+function	script	F_QDO_Configure_rank_torre_day	{
+	if($@qdo_month_rank_torre != gettime(GETTIME_MONTH)){
+		//Dia do mês para entregar a recompensa
+		switch(gettime(GETTIME_MONTH)){
+			case JANUARY:
+			case MARCH:
+			case MAY:
+			case JULY:
+			case AUGUST:
+			case OCTOBER:
+			case DECEMBER:
+				$@qdo_day_recomp_rank_torre = 31;
+				break;
+			case FEBRUARY:
+				$@qdo_day_recomp_rank_torre = (gettime(GETTIME_YEAR) % 4 == 0 ? 29 : 28);
+				break;
+			case APRIL:
+			case JUNE:
+			case SEPTEMBER:
+			case NOVEMBER:
+				$@qdo_day_recomp_rank_torre = 30;
+				break;
+		}
+		$@qdo_month_rank_torre = gettime(GETTIME_MONTH);
+	}
+	return;
+}
+
+function	script	F_QDO_get_recomp_rank_torre	{
+	switch(getarg(0)){
+		case 1:
+			.@qty = 30;
+			break;
+		case 2:
+			.@qty = 20;
+			break;
+		case 3:
+			.@qty = 10;
+			break;
+		default:
+			.@qty = 5;
+			break;
+	}
+	return .@qty;
+}
+
+//<acc_id><char_id><pontos><complete_time>
+function	script	F_QDO_set_rank_torre	{
+	.@mes = gettime(GETTIME_MONTH);
+	.@ano = gettime(GETTIME_YEAR);
+	.@sql$ = "REPLACE INTO `ragnarok`.`gt_rank_torre`" + 
+	"(`acc_id`, `char_id`, `mes`, `ano`, `pontos`, `complete_time`) VALUES " + 
+	"(" + getarg(0) + ", " + getarg(1) + ", " + .@mes + ", " + .@ano + ", " + getarg(2) + ", " + getarg(3) + ");";
+	.@nb = query_sql(.@sql$);
+	return .@nb;
+}
+
+//[0]position	[1]name	[2]acc_id	[3]char_id	[4]mes	[5]ano	[6]pontos
+//<individual><char_id><rank$>
+function	script	F_QDO_get_rank_torre	{
+	.@mes_arg = gettime(GETTIME_MONTH);
+	.@ano_arg = gettime(GETTIME_YEAR);
+	.@sql$ = "SELECT " +
+			"c.name," + 
+			"r.acc_id, " +			
+			"r.char_id, " + 
+			"r.mes, " + 
+			"r.ano, " + 
+			"r.pontos " + 
+			"FROM gt_rank_torre as r " + 
+			"INNER JOIN `char` as c ON " + 
+				"c.char_id = r.char_id " + 
+			"WHERE r.mes = " + .@mes_arg + " AND " + 
+			"r.ano = " + .@ano_arg + " AND " + 
+			"r.pontos > 0 " + 
+			"ORDER BY r.pontos DESC, r.complete_time ";
+	//Se rank geral
+	if(!getarg(0)){
+		.@sql$ += "LIMIT 0," + $@qdo_qt_rank_torre + ";";
+	}
+	else{
+		.@sql$ += ";";
+	}
+	.@nb = query_sql(.@sql$, .@names$, .@acc_ids, .@char_ids, .@mes, .@ano, .@pontos);
+	if(.@nb == 0){
+		return 0;
+	}
+	.@j = 0;
+	for(.@i = 0; .@i < getarraysize(.@acc_ids); .@i++){
+		//Se rank indivisual
+		if(getarg(0) && .@char_ids[.@i] != getarg(1)){
+			continue;
+		}
+		setarray getelementofarray(getarg(2), .@j), (.@i + 1) + "|" + 
+													.@names$[.@i] + "|" + 
+													.@acc_ids[.@i] + "|" + 
+													.@char_ids[.@i] + "|" + 
+													.@mes[.@i] + "|" + 
+													.@ano[.@i] + "|" + 
+													.@pontos[.@i];
+		.@j++;
+	}
+	return getarg(0) ? .@j : .@nb;
+}

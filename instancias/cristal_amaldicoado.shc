@@ -1,0 +1,728 @@
+/*
+ ================================================================
+                   Instância: Cristal Amaldiçoado
+ ================================================================
+ ----------------------------------------------------------------
+                               AUTOR
+                              QuodDG
+ ----------------------------------------------------------------
+                              VERSÕES
+                       1.0 Criação [QuodDG]
+ ----------------------------------------------------------------
+ //Item: Crystal_Of_Feardoom_GT
+ //Map: 1@sthd
+ ================================================================
+*/
+
+//======================
+//== Loja
+//======================
+-	shop	loja_medo_ica	-1,501:100
+
+gef_tower,66,175,4	script	Loja do Medo#ica	4_MAN_NITT,{
+	.nome_npc$ = "^FF8B00[= Loja do Medo =]^000000";
+	mes .nome_npc$;
+	mes "Olá, ^0075E9" + strcharinfo(PC_NAME) + "^000000!";
+	mes "Os itens que vendo podem ser comprados com ^0075E9" + getitemname(Crystal_Of_Feardoom_GT) + "^000000, obtidos na instância ^0075E9Cristal Amaldiçoado^000000.";
+	mes "^FF0000A Skill de desconto não funciona nesse shop^000000";
+	close2;
+	npcshopattach(.shopname$, 1);
+	callshop .shopname$, 1;
+	end;
+
+OnBuyItem:
+	@total = 0;
+	.@k = 0;
+	for(.@i = 0; .@i < getarraysize(@bought_nameid); .@i++){
+		for(.@j = 0; .@j < getarraysize(.itens); .@j += 2){
+			if(@bought_nameid[.@i] == .itens[.@j]){
+				setarray(.@buying[.@k], .itens[.@j], @bought_quantity[.@i]);
+				.@total += .itens[.@j + 1] * @bought_quantity[.@i];
+				.@k += 2;
+				break;
+			}
+		}
+	}
+	if(countitem(Crystal_Of_Feardoom_GT) < .@total){
+		dispbottom("Você não tem " + getitemname(Crystal_Of_Feardoom_GT) + " suficiente.", 0xFF0000);
+		end;
+	}
+	delitem(Crystal_Of_Feardoom_GT, .@total);
+	dispbottom("Você gastou " + .@total + "x " + getitemname(Crystal_Of_Feardoom_GT) + ".");
+	for(.@i = 0; .@i < getarraysize(.@buying); .@i += 2){
+		getitem(.@buying[.@i], .@buying[.@i + 1]);
+	}
+	end;
+
+OnInit:
+	deletearray(.itens[0], getarraysize(.itens));
+	setarray(.itens[0],
+		Thanos_Sword,			2000,
+		Thanos_Great_Sword,		2000,
+		Thanos_Dagger,			2000,
+		Thanos_Katar,			2000,
+		Thanos_Hammer,			2000,
+		Thanos_Axe,				2000,
+		Thanos_Knuckle,			2000,
+		Thanos_Long_Spear,		2000,
+		Thanos_Spear,			2000,
+		Thanos_Staff,			2000,
+		Thanos_Rod,				2000,
+		Thanos_Violin,			2000,
+		Thanos_Whip,			2000,
+		
+		Armor_Of_Gray,			1000,
+		Boots_Of_Gray,			1000,
+		Cloak_Of_Gray,			1000,
+		Gray_Helmet,			1000,
+		Gray_Robe,				1000,
+		Shield_Of_Gray,			1000
+	);
+	
+	.shopname$ = "loja_medo_ica";
+	npcshopdelitem .shopname$, 501;
+	
+	for(.@i = 0; .@i < getarraysize(.itens); .@i += 2){
+		npcshopadditem .shopname$, .itens[.@i], .itens[.@i + 1];
+	}
+	end;
+}
+
+//======================
+//== Iniciador
+//======================
+
+gef_tower,44,104,4	script	Roger#ica	4_M_YOYOROGUE,{
+	.@npc_name$ = "^FF8B00[= Roger =]^000000";
+	if(BaseLevel < 90){
+		mes .@npc_name$;
+		mes "Ora ora, você não me parece ser o tipo de pessoa que deveria me procurar.";
+		mes "Se você fosse mais forte, quem sabe...";
+		close;
+	}
+	if (questprogress(61807)) {
+		if(questprogress(61807, PLAYTIME) == 1){
+			mes .@npc_name$;
+			mes "Vá com calma. Não é tão simples abrir a Fenda Dimensional. Teremos que aguardar um tempo.";
+			close;
+		}
+		erasequest(61807);
+	}
+	mes .@npc_name$;
+	mes "Eaí!";
+	mes "Você gosta de apostar?";
+	next;
+	if(select("Não:Sim") == 1){
+		mes .@npc_name$;
+		mes "Então isso aqui não é para você.";
+		close;
+	}
+	mes .@npc_name$;
+	mes "Eu também amo apostar.";
+	mes "Você apostaria a sua vida?";
+	next;
+	if(select("Não:Se valer à pena") == 1){
+		mes .@npc_name$;
+		mes "Então isso aqui não é para você.";
+		close;
+	}
+	mes .@npc_name$;
+	mes "Ora ora, quem diria que eu encontraria alguém como você nessa Dimensão.";
+	mes "Estou começando a gostar de você! Hehe";
+	next;
+	mes .@npc_name$;
+	mes "Enfim!";
+	mes "Eu conheço um lugar em que você pode conseguir muitas recompensas, se sovreviver.";
+	mes "Estaria interessado?";
+	next;
+	if(select("Não:Claro") == 1){
+		mes .@npc_name$;
+		mes "É...";
+		mes "Você não parece preparado para isso.";
+		close;
+	}
+	mes .@npc_name$;
+	mes "Encontrei esse lugar durante minhas viagens por outras dimensões.";
+	mes "É uma espécie de arena com um cristal que dizem ser amaldiçoado.";
+	next;
+	mes .@npc_name$;
+	mes "Ele consegue invocar criaturas de várias dimensões.";
+	mes "Ouvi dizer que foi criado por um mago bizarro que gostava de apostas.";
+	next;
+	mes .@npc_name$;
+	mes "Existem várias rodadas e em cada uma delas o cristal irá invocar diversas criaturas.";
+	mes "A cada rodada que você sobrevive, você ganha uma quantidade de ^0075E9" + getitemname(Crystal_Of_Feardoom_GT) + "^000000.";
+	next;
+	mes .@npc_name$;
+	mes "O mago de quem te falei, está na sua Dimensão.";
+	mes "Ele recebe esse cristal em troca de alguns itens.";
+	next;
+	mes .@npc_name$;
+	mes "Eaí?";
+	mes "Está afim de tentar? Eu posso te mostrar onde fica.";
+	next;
+	if(select("Depois:Claro") == 1){
+		mes .@npc_name$;
+		mes "Tudo bem...";
+		mes "Você quem sabe.";
+		close;
+	}
+	.@party_id = getcharid(CHAR_ID_PARTY);
+	if (!.@party_id) {
+		mes .@npc_name$;
+		mes "Você não está em um Grupo. Dessa forma meu dispositivo não irá funcionar.";
+		close;
+	}
+	if (getcharid(CHAR_ID_CHAR) != getpartyleader(.@party_id, 2)) {
+		mes .@npc_name$;
+		mes "A sua empolgação é bacana, mas terei que pedir para falar com o Líder do seu Grupo.";
+		close;
+	}
+	.@instance = instance_create("Cristal Amaldiçoado", .@party_id);
+	if (.@instance >= 0) {
+		if (instance_attachmap("1@sthd", .@instance) == "") {
+			mes .@npc_name$;
+			mes "Meu dispositivo está com mau funcionamento...";
+			mes "Talvez esteja sobrecarregado.";
+			mes "Vamos tentar de novo em alguns minutos.";
+			close2;
+			instance_destroy(.@instance);
+			end;
+		}
+		instance_set_timeout(3600, 10, .@instance);
+		instance_init(.@instance);
+	}
+	if(.@instance < 0 || has_instance("1@sthd") == ""){
+		mes .@npc_name$;
+		mes "Meu dispositivo está com mau funcionamento...";
+		mes "Talvez esteja sobrecarregado.";
+		mes "Vamos tentar de novo em alguns minutos.";
+		close;
+	}
+	mes .@npc_name$;
+	mes "Muito bem, tudo está pronto.";
+	mes "Boa sorte ^0075E9" + strcharinfo(PC_NAME) + "^000000!";
+	close2;
+	setquest(61807);
+	warp("1@sthd", 98, 71);
+	end;
+}
+
+//======================
+//== map_zone and flags
+//======================
+
+1@sthd	mapflag	zone	Memorial Dungeon 2
+
+//======================
+//== Warps
+//======================
+
+1@sthd,104,72,0	script	#ica_w1	WARPNPC,1,1,{
+	warp("geffen", 120, 63);
+	end;
+OnInstanceInit:
+OnDisable:
+	disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+	
+OnEnable:
+	enablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+}
+
+//======================
+//== Controlador
+//======================
+
+1@sthd,104,96,0	script	Cristal Amaldiçoado#ica	S_EMPEL_1,{
+	end;
+OnInstanceInit:
+	'ica_step = 1;
+	'ica_mob_bonus = 0;
+	donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnSummon");
+	end;
+
+OnDisable:
+	disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+	
+OnEnable:
+	enablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+
+OnNoComplete:
+	instance_announce(instance_id(), "Que pena! Você não conseguiu concluir todas as rodadas. Entre no portal para voltar à sua dimensão.", bc_npc);
+	sleep(1000);
+	donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnDisable");
+	donpcevent(instance_npcname("#ica_w1") + "::OnEnable");
+	end;
+
+OnComplete:
+	instance_announce(instance_id(), "Parabéns! Você concluiu todas as rodadas. Entre no portal para voltar à sua dimensão.", bc_npc);
+	sleep(1000);
+	donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnDisable");
+	donpcevent(instance_npcname("#ica_w1") + "::OnEnable");
+	end;
+	
+OnSummon:
+	if(callfunc("QDO_F_Get_respawn_step_ica", 'ica_step, .@respawn_info) == 0){
+		donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnComplete");
+		end;
+	}
+	instance_announce(instance_id(), "[Rodada " + 'ica_step + "] Prepare-se! As criaturas aparecerão em 5 segundos", bc_npc);
+	sleep(5000);
+	freeloop(1);
+	for(.@i = 0; .@i < getarraysize(.@respawn_info); .@i += 2){
+		.@mobGID = areamonster(instance_mapname("1@sthd"), 93, 80, 115, 111, strmobinfo(2, .@respawn_info[.@i]), .@respawn_info[.@i], .@respawn_info[.@i + 1], instance_npcname(strnpcinfo(NPC_NAME))+"::OnMobDead");
+		//Recalculando os Stats
+		//.@lv = getunitdata(.@mobGID, UDT_LEVEL) << 'ica_mob_bonus;
+		.@atk_min = getunitdata(.@mobGID, UDT_ATKMIN) << 'ica_mob_bonus;
+		.@atk_max = getunitdata(.@mobGID, UDT_ATKMAX) << 'ica_mob_bonus;
+		.@matk_min = getunitdata(.@mobGID, UDT_MATKMIN) << 'ica_mob_bonus;
+		.@matk_max = getunitdata(.@mobGID, UDT_MATKMAX) << 'ica_mob_bonus;
+		.@max_hp = getunitdata(.@mobGID, UDT_MAXHP) << 'ica_mob_bonus;
+		//Atribuindo novos Stats
+		//setunitdata(.@mobGID, UDT_LEVEL, .@lv);
+		setunitdata(.@mobGID, UDT_ATKMIN, .@atk_min);
+		setunitdata(.@mobGID, UDT_ATKMAX, .@atk_max);
+		setunitdata(.@mobGID, UDT_MATKMIN, .@matk_min);
+		setunitdata(.@mobGID, UDT_MATKMAX, .@matk_max);
+		setunitdata(.@mobGID, UDT_MAXHP, .@max_hp);
+		setunitdata(.@mobGID, UDT_HP, .@max_hp);
+	}
+	freeloop(0);
+	initnpctimer();
+	end;
+
+OnTimer300000:
+	stopnpctimer();
+	donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnKillMob");
+	donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnNoComplete");
+	end;
+	
+OnKillMob:
+	killmonster(instance_mapname("1@sthd"), instance_npcname(strnpcinfo(NPC_NAME)) + "::OnMobDead");
+	end;
+
+OnMobDead:
+	if(mobcount(instance_mapname("1@sthd"), instance_npcname(strnpcinfo(NPC_NAME)) + "::OnMobDead") > 0){
+		end;
+	}
+	'ica_step++;
+	'ica_mob_bonus = 'ica_step / 9;
+	getitem(Crystal_Of_Feardoom_GT, 'ica_mob_bonus + 1);
+	donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnSummon");
+	end;	
+}
+
+//======================
+//== Funcstions
+//======================
+
+//<step><respawn_info>
+function	script	QDO_F_Get_respawn_step_ica	{
+	switch(getarg(0)){
+		case 1:
+			set getelementofarray(getarg(1), 0), NOVUS;
+			set getelementofarray(getarg(1), 1), 2;
+			set getelementofarray(getarg(1), 2), JOKER;
+			set getelementofarray(getarg(1), 3), 2;
+			set getelementofarray(getarg(1), 4), MARIONETTE;
+			set getelementofarray(getarg(1), 5), 2;
+			set getelementofarray(getarg(1), 6), SKEL_PRISONER;
+			set getelementofarray(getarg(1), 7), 2;
+			set getelementofarray(getarg(1), 8), DEMON_PUNGUS;
+			set getelementofarray(getarg(1), 9), 2;
+			return 1;
+			break;
+		case 2:
+			set getelementofarray(getarg(1), 0), TEDDY_BEAR;
+			set getelementofarray(getarg(1), 1), 2;
+			set getelementofarray(getarg(1), 2), ELDER;
+			set getelementofarray(getarg(1), 3), 2;
+			set getelementofarray(getarg(1), 4), LIVE_PEACH_TREE;
+			set getelementofarray(getarg(1), 5), 2;
+			set getelementofarray(getarg(1), 6), DEVIRUCHI;
+			set getelementofarray(getarg(1), 7), 2;
+			set getelementofarray(getarg(1), 8), UNGOLIANT;
+			set getelementofarray(getarg(1), 9), 2;
+			return 1;
+			break;
+		case 3:
+			set getelementofarray(getarg(1), 0), BLOOD_BUTTERFLY;
+			set getelementofarray(getarg(1), 1), 2;
+			set getelementofarray(getarg(1), 2), FREEZER;
+			set getelementofarray(getarg(1), 3), 2;
+			set getelementofarray(getarg(1), 4), GARM_BABY;
+			set getelementofarray(getarg(1), 5), 2;
+			set getelementofarray(getarg(1), 6), INJUSTICE;
+			set getelementofarray(getarg(1), 7), 2;
+			//Mini-boss
+			set getelementofarray(getarg(1), 8), VAGABOND_WOLF;
+			set getelementofarray(getarg(1), 9), 1;
+			return 1;
+			break;
+		case 4:
+			set getelementofarray(getarg(1), 0), SHINOBI;
+			set getelementofarray(getarg(1), 1), 2;
+			set getelementofarray(getarg(1), 2), EVIL_CLOUD_HERMIT;
+			set getelementofarray(getarg(1), 3), 2;
+			set getelementofarray(getarg(1), 4), OBSIDIAN;
+			set getelementofarray(getarg(1), 5), 2;
+			set getelementofarray(getarg(1), 6), WICKED_NYMPH;
+			set getelementofarray(getarg(1), 7), 2;
+			set getelementofarray(getarg(1), 8), THE_PAPER;
+			set getelementofarray(getarg(1), 9), 2;
+			return 1;
+			break;
+		case 5:
+			set getelementofarray(getarg(1), 0), RYBIO;
+			set getelementofarray(getarg(1), 1), 2;
+			set getelementofarray(getarg(1), 2), NERAID;
+			set getelementofarray(getarg(1), 3), 2;
+			set getelementofarray(getarg(1), 4), GIG;
+			set getelementofarray(getarg(1), 5), 2;
+			set getelementofarray(getarg(1), 6), ICEICLE;
+			set getelementofarray(getarg(1), 7), 2;
+			set getelementofarray(getarg(1), 8), ASSULTER;
+			set getelementofarray(getarg(1), 9), 2;
+			return 1;
+			break;
+		case 6:
+			set getelementofarray(getarg(1), 0), QUVE;
+			set getelementofarray(getarg(1), 1), 2;
+			set getelementofarray(getarg(1), 2), GARGOYLE;
+			set getelementofarray(getarg(1), 3), 2;
+			set getelementofarray(getarg(1), 4), BLAZZER;
+			set getelementofarray(getarg(1), 5), 2;
+			set getelementofarray(getarg(1), 6), HILL_WIND_1;
+			set getelementofarray(getarg(1), 7), 2;
+			//Mini-boss
+			set getelementofarray(getarg(1), 8), GALION;
+			set getelementofarray(getarg(1), 9), 1;
+			return 1;
+			break;
+		case 7:
+			set getelementofarray(getarg(1), 0), KOBOLD_3;
+			set getelementofarray(getarg(1), 1), 2;
+			set getelementofarray(getarg(1), 2), MEDUSA;
+			set getelementofarray(getarg(1), 3), 2;
+			set getelementofarray(getarg(1), 4), HYLOZOIST;
+			set getelementofarray(getarg(1), 5), 2;
+			set getelementofarray(getarg(1), 6), PHENDARK;
+			set getelementofarray(getarg(1), 7), 2;
+			set getelementofarray(getarg(1), 8), KOBOLD_2;
+			set getelementofarray(getarg(1), 9), 2;
+			return 1;
+			break;
+		case 8:
+			set getelementofarray(getarg(1), 0), DISGUISE;
+			set getelementofarray(getarg(1), 1), 2;
+			set getelementofarray(getarg(1), 2), SNOWIER;
+			set getelementofarray(getarg(1), 3), 2;
+			set getelementofarray(getarg(1), 4), CARAT;
+			set getelementofarray(getarg(1), 5), 2;
+			set getelementofarray(getarg(1), 6), DESERT_WOLF;
+			set getelementofarray(getarg(1), 7), 2;
+			set getelementofarray(getarg(1), 8), STING;
+			set getelementofarray(getarg(1), 9), 2;
+			return 1;
+			break;
+		case 9:
+			set getelementofarray(getarg(1), 0), DIABOLIC;
+			set getelementofarray(getarg(1), 1), 2;
+			set getelementofarray(getarg(1), 2), GIBBET;
+			set getelementofarray(getarg(1), 3), 2;
+			set getelementofarray(getarg(1), 4), DELETER;
+			set getelementofarray(getarg(1), 5), 2;
+			set getelementofarray(getarg(1), 6), FAKE_ANGEL;
+			set getelementofarray(getarg(1), 7), 2;
+			//Mini-boss
+			set getelementofarray(getarg(1), 8), DARK_PRIEST;
+			set getelementofarray(getarg(1), 9), 1;
+			return 1;
+			break;
+		case 10:
+			set getelementofarray(getarg(1), 0), PINGUICULA;
+			set getelementofarray(getarg(1), 1), 2;
+			set getelementofarray(getarg(1), 2), ANUBIS;
+			set getelementofarray(getarg(1), 3), 2;
+			set getelementofarray(getarg(1), 4), GAZETI;
+			set getelementofarray(getarg(1), 5), 2;
+			set getelementofarray(getarg(1), 6), KOBOLD_1;
+			set getelementofarray(getarg(1), 7), 2;
+			set getelementofarray(getarg(1), 8), ARCLOUSE;
+			set getelementofarray(getarg(1), 9), 2;
+			return 1;
+			break;
+		case 11:
+			set getelementofarray(getarg(1), 0), MANANANGGAL;
+			set getelementofarray(getarg(1), 1), 2;
+			set getelementofarray(getarg(1), 2), KOBOLD_1;
+			set getelementofarray(getarg(1), 3), 2;
+			set getelementofarray(getarg(1), 4), HEAVY_METALING;
+			set getelementofarray(getarg(1), 5), 2;
+			set getelementofarray(getarg(1), 6), CONSTANT;
+			set getelementofarray(getarg(1), 7), 2;
+			set getelementofarray(getarg(1), 8), DULLAHAN;
+			set getelementofarray(getarg(1), 9), 2;
+			return 1;
+			break;
+		case 12:
+			set getelementofarray(getarg(1), 0), KOBOLD_ARCHER;
+			set getelementofarray(getarg(1), 1), 2;
+			set getelementofarray(getarg(1), 2), LUCIOLA_VESPA;
+			set getelementofarray(getarg(1), 3), 2;
+			set getelementofarray(getarg(1), 4), LOLI_RURI;
+			set getelementofarray(getarg(1), 5), 2;
+			set getelementofarray(getarg(1), 6), ANOLIAN;
+			set getelementofarray(getarg(1), 7), 2;
+			//Mini-boss
+			set getelementofarray(getarg(1), 8), CHIMERA;
+			set getelementofarray(getarg(1), 9), 1;
+			return 1;
+			break;
+		case 13:
+			set getelementofarray(getarg(1), 0), LAVA_GOLEM;
+			set getelementofarray(getarg(1), 1), 2;
+			set getelementofarray(getarg(1), 2), DELETER_;
+			set getelementofarray(getarg(1), 3), 2;
+			set getelementofarray(getarg(1), 4), TIYANAK;
+			set getelementofarray(getarg(1), 5), 2;
+			set getelementofarray(getarg(1), 6), NIGHTMARE_TERROR;
+			set getelementofarray(getarg(1), 7), 2;
+			set getelementofarray(getarg(1), 8), LIKE_LOVE;
+			set getelementofarray(getarg(1), 9), 2;
+			return 1;
+			break;
+		case 14:
+			set getelementofarray(getarg(1), 0), COYOTE;
+			set getelementofarray(getarg(1), 1), 2;
+			set getelementofarray(getarg(1), 2), MANGKUKULAM;
+			set getelementofarray(getarg(1), 3), 2;
+			set getelementofarray(getarg(1), 4), MAGMARING;
+			set getelementofarray(getarg(1), 5), 2;
+			set getelementofarray(getarg(1), 6), SEDORA;
+			set getelementofarray(getarg(1), 7), 2;
+			set getelementofarray(getarg(1), 8), WAKWAK;
+			set getelementofarray(getarg(1), 9), 2;
+			return 1;
+			break;
+		case 15:
+			set getelementofarray(getarg(1), 0), ALIOT;
+			set getelementofarray(getarg(1), 1), 2;
+			set getelementofarray(getarg(1), 2), SROPHO;
+			set getelementofarray(getarg(1), 3), 2;
+			set getelementofarray(getarg(1), 4), COBALT_MINERAL;
+			set getelementofarray(getarg(1), 5), 2;
+			set getelementofarray(getarg(1), 6), VENATU_3;
+			set getelementofarray(getarg(1), 7), 2;
+			//Mini-boss
+			set getelementofarray(getarg(1), 8), OWL_DUKE;
+			set getelementofarray(getarg(1), 9), 1;
+			return 1;
+			break;
+		case 16:
+			set getelementofarray(getarg(1), 0), VENATU_4;
+			set getelementofarray(getarg(1), 1), 2;
+			set getelementofarray(getarg(1), 2), VENATU_3;
+			set getelementofarray(getarg(1), 3), 2;
+			set getelementofarray(getarg(1), 4), VENATU_1;
+			set getelementofarray(getarg(1), 5), 2;
+			set getelementofarray(getarg(1), 6), DEATHWORD;
+			set getelementofarray(getarg(1), 7), 2;
+			set getelementofarray(getarg(1), 8), NEPENTHES;
+			set getelementofarray(getarg(1), 9), 2;
+			return 1;
+			break;
+		case 17:
+			set getelementofarray(getarg(1), 0), DRACO;
+			set getelementofarray(getarg(1), 1), 2;
+			set getelementofarray(getarg(1), 2), HELL_POODLE;
+			set getelementofarray(getarg(1), 3), 2;
+			set getelementofarray(getarg(1), 4), TIKBALANG;
+			set getelementofarray(getarg(1), 5), 2;
+			set getelementofarray(getarg(1), 6), ALICEL;
+			set getelementofarray(getarg(1), 7), 2;
+			set getelementofarray(getarg(1), 8), RAYDRIC;
+			set getelementofarray(getarg(1), 9), 2;
+			return 1;
+			break;
+		case 18:
+			set getelementofarray(getarg(1), 0), PLASMA_B;
+			set getelementofarray(getarg(1), 1), 2;
+			set getelementofarray(getarg(1), 2), PLASMA_G;
+			set getelementofarray(getarg(1), 3), 2;
+			set getelementofarray(getarg(1), 4), DIMIK_3;
+			set getelementofarray(getarg(1), 5), 2;
+			set getelementofarray(getarg(1), 6), DIMIK_1;
+			set getelementofarray(getarg(1), 7), 2;
+			//Mini-boss
+			set getelementofarray(getarg(1), 8), OWL_BARON;
+			set getelementofarray(getarg(1), 9), 1;
+			return 1;
+			break;
+		case 19:
+			set getelementofarray(getarg(1), 0), DIMIK_4;
+			set getelementofarray(getarg(1), 1), 2;
+			set getelementofarray(getarg(1), 2), BLOODY_KNIGHT;
+			set getelementofarray(getarg(1), 3), 2;
+			set getelementofarray(getarg(1), 4), DIMIK_2;
+			set getelementofarray(getarg(1), 5), 2;
+			set getelementofarray(getarg(1), 6), PLASMA_G;
+			set getelementofarray(getarg(1), 7), 2;
+			set getelementofarray(getarg(1), 8), MINI_DEMON;
+			set getelementofarray(getarg(1), 9), 2;
+			return 1;
+			break;
+		case 20:
+			set getelementofarray(getarg(1), 0), PLASMA_P;
+			set getelementofarray(getarg(1), 1), 2;
+			set getelementofarray(getarg(1), 2), PLASMA_R;
+			set getelementofarray(getarg(1), 3), 2;
+			set getelementofarray(getarg(1), 4), GREMLIN;
+			set getelementofarray(getarg(1), 5), 2;
+			set getelementofarray(getarg(1), 6), VIOLY;
+			set getelementofarray(getarg(1), 7), 2;
+			set getelementofarray(getarg(1), 8), KHALITZBURG;
+			set getelementofarray(getarg(1), 9), 2;
+			return 1;
+			break;
+		case 21:
+			set getelementofarray(getarg(1), 0), ARCHDAM;
+			set getelementofarray(getarg(1), 1), 2;
+			set getelementofarray(getarg(1), 2), ICE_TITAN;
+			set getelementofarray(getarg(1), 3), 2;
+			set getelementofarray(getarg(1), 4), AUNOE;
+			set getelementofarray(getarg(1), 5), 2;
+			set getelementofarray(getarg(1), 6), ANCIENT_MIMIC;
+			set getelementofarray(getarg(1), 7), 2;
+			//Mini-boss
+			set getelementofarray(getarg(1), 8), MUTANT_DRAGON;
+			set getelementofarray(getarg(1), 9), 1;
+			return 1;
+			break;
+		case 22:
+			set getelementofarray(getarg(1), 0), PINGUICULA_D;
+			set getelementofarray(getarg(1), 1), 2;
+			set getelementofarray(getarg(1), 2), ANCIENT_MUMMY;
+			set getelementofarray(getarg(1), 3), 2;
+			set getelementofarray(getarg(1), 4), ZAKUDAM;
+			set getelementofarray(getarg(1), 5), 2;
+			set getelementofarray(getarg(1), 6), CENTIPEDE_LARVA;
+			set getelementofarray(getarg(1), 7), 2;
+			set getelementofarray(getarg(1), 8), SUCCUBUS;
+			set getelementofarray(getarg(1), 9), 2;
+			return 1;
+			break;
+		case 23:
+			set getelementofarray(getarg(1), 0), INCUBUS;
+			set getelementofarray(getarg(1), 1), 2;
+			set getelementofarray(getarg(1), 2), FANAT;
+			set getelementofarray(getarg(1), 3), 2;
+			set getelementofarray(getarg(1), 4), WANDER_MAN;
+			set getelementofarray(getarg(1), 5), 2;
+			set getelementofarray(getarg(1), 6), BUNGISNGIS;
+			set getelementofarray(getarg(1), 7), 2;
+			set getelementofarray(getarg(1), 8), AQUA_ELEMENTAL;
+			set getelementofarray(getarg(1), 9), 2;
+			return 1;
+			break;
+		case 24:
+			set getelementofarray(getarg(1), 0), HELL_APOCALIPS;
+			set getelementofarray(getarg(1), 1), 2;
+			set getelementofarray(getarg(1), 2), BUNGISNGIS;
+			set getelementofarray(getarg(1), 3), 2;
+			set getelementofarray(getarg(1), 4), AQUA_ELEMENTAL;
+			set getelementofarray(getarg(1), 5), 2;
+			set getelementofarray(getarg(1), 6), REMOVAL;
+			set getelementofarray(getarg(1), 7), 2;
+			//Mini-boss
+			set getelementofarray(getarg(1), 8), WILD_RIDER;
+			set getelementofarray(getarg(1), 9), 1;
+			return 1;
+			break;
+		case 25:
+			set getelementofarray(getarg(1), 0), FLAME_SKULL;
+			set getelementofarray(getarg(1), 1), 2;
+			set getelementofarray(getarg(1), 2), HODREMLIN;
+			set getelementofarray(getarg(1), 3), 2;
+			set getelementofarray(getarg(1), 4), KNIGHT_OF_ABYSS;
+			set getelementofarray(getarg(1), 5), 2;
+			set getelementofarray(getarg(1), 6), VANBERK;
+			set getelementofarray(getarg(1), 7), 2;
+			set getelementofarray(getarg(1), 8), RAGGED_ZOMBIE;
+			set getelementofarray(getarg(1), 9), 2;
+			return 1;
+			break;
+		case 26:
+			set getelementofarray(getarg(1), 0), HILLSRION;
+			set getelementofarray(getarg(1), 1), 2;
+			set getelementofarray(getarg(1), 2), SEEKER;
+			set getelementofarray(getarg(1), 3), 2;
+			set getelementofarray(getarg(1), 4), ISILLA;
+			set getelementofarray(getarg(1), 5), 2;
+			set getelementofarray(getarg(1), 6), ZOMBIE_SLAUGHTER;
+			set getelementofarray(getarg(1), 7), 2;
+			set getelementofarray(getarg(1), 8), ENGKANTO;
+			set getelementofarray(getarg(1), 9), 2;
+			return 1;
+			break;
+		case 27:
+			set getelementofarray(getarg(1), 0), CENTIPEDE;
+			set getelementofarray(getarg(1), 1), 2;
+			set getelementofarray(getarg(1), 2), FERUS_;
+			set getelementofarray(getarg(1), 3), 2;
+			set getelementofarray(getarg(1), 4), SKOGUL;
+			set getelementofarray(getarg(1), 5), 2;
+			set getelementofarray(getarg(1), 6), ECHIO;
+			set getelementofarray(getarg(1), 7), 2;
+			//Mini-boss
+			set getelementofarray(getarg(1), 8), HYDRO;
+			set getelementofarray(getarg(1), 9), 1;
+			return 1;
+			break;
+		case 28:
+			set getelementofarray(getarg(1), 0), AGAV;
+			set getelementofarray(getarg(1), 1), 2;
+			set getelementofarray(getarg(1), 2), FRUS;
+			set getelementofarray(getarg(1), 3), 2;
+			set getelementofarray(getarg(1), 4), IMP;
+			set getelementofarray(getarg(1), 5), 2;
+			set getelementofarray(getarg(1), 6), BANSHEE;
+			set getelementofarray(getarg(1), 7), 2;
+			set getelementofarray(getarg(1), 8), ACIDUS;
+			set getelementofarray(getarg(1), 9), 2;
+			return 1;
+			break;
+		case 29:
+			set getelementofarray(getarg(1), 0), I_HORN_SCARABA;
+			set getelementofarray(getarg(1), 1), 2;
+			set getelementofarray(getarg(1), 2), ACIDUS_;
+			set getelementofarray(getarg(1), 3), 2;
+			set getelementofarray(getarg(1), 4), RATA;
+			set getelementofarray(getarg(1), 5), 2;
+			set getelementofarray(getarg(1), 6), DOLOMEDES;
+			set getelementofarray(getarg(1), 7), 2;
+			set getelementofarray(getarg(1), 8), WHIKEBAIN;
+			set getelementofarray(getarg(1), 9), 2;
+			return 1;
+			break;
+		case 30:
+			set getelementofarray(getarg(1), 0), RAWREL;
+			set getelementofarray(getarg(1), 1), 2;
+			set getelementofarray(getarg(1), 2), EREND;
+			set getelementofarray(getarg(1), 3), 2;
+			set getelementofarray(getarg(1), 4), ARMAIA;
+			set getelementofarray(getarg(1), 5), 2;
+			set getelementofarray(getarg(1), 6), KAVAC;
+			set getelementofarray(getarg(1), 7), 2;
+			//Mini-boss
+			set getelementofarray(getarg(1), 8), MAYA;
+			set getelementofarray(getarg(1), 9), 1;
+			return 1;
+			break;
+	}
+	return 0;
+}

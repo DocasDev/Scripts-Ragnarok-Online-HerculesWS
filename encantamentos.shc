@@ -1,0 +1,455 @@
+/* ===============================================================
+                             Encantamentos
+   ================================================================
+   ----------------------------------------------------------------
+                            COMPATIBILIDADE
+							   Hercules
+   ----------------------------------------------------------------
+                                VERSÕES
+                        1.0 Criação [QuodDG]
+   ----------------------------------------------------------------
+ * ================================================================
+ */
+
+geffen_in,65,173,4	script	Marcus#gt0	4_M_REPAIR,{
+	.name_name$ = "^FF8B00[= Marcus =]^000000";
+	
+	mes .name_name$;
+	mes "Olá, ^0075E9" + strcharinfo(PC_NAME) + "^000000!";
+	mes "O que deseja?";
+	next;
+	switch(select("Encantar equipamento:Fazer a missão de Encantamento:Nada")){
+		case 1:
+			callsub(S_ENCHANT);
+			break;
+		case 2:
+			callsub(S_QUEST);
+			break;
+		default:
+			mes .name_name$;
+			mes "Tudo bem.";
+			mes "Volte quando quiser.";
+			close;
+			break;
+	}
+	end;
+	
+S_QUEST:
+	mes .name_name$;
+	if(qdo_enchant_eden == 3){
+		mes "Você já completou todas as missões de desbloqueio dos encantamentos.";
+		close;
+	}
+	mes "Gostaria de liberar o acesso aos ^0075E9Encantamentos^000000?";
+	next;
+	if(select("Não:Sim") == 1){
+		mes .name_name$;
+		mes "Tudo bem, volte quando estiver pronto.";
+		close;
+	}
+	mes .name_name$;
+	mes "Muito bem!";
+	mes "Existem 3 níveis de encantamentos.";
+	mes "Para cada um você precisará fazer uma missão para liberar o acesso.";
+	mes "Deseja começar?";
+	next;
+	if(select("Não:Sim") == 1){
+		mes .name_name$;
+		mes "Tudo bem, volte quando estiver pronto.";
+		close;
+	}
+	.@rec_level = qdo_enchant_eden + 1;
+	if(.@rec_level == 1){
+		.@armor_id = Para_Team_Uniform1;
+	}
+	else if(.@rec_level == 2){
+		.@armor_id = Para_Team_Uniform2;
+	}
+	else if(.@rec_level == 3){
+		.@armor_id = Para_Team_Uniform3;
+	}
+	mes .name_name$;
+	mes "Para liberar o acesso ao ^0075E9Nível " + .@rec_level + "^000000 de ^0075E9Encantamentos^000000 você precisará trazer:";
+	mes "1x ^0075E9Arma do Éden de Nívelamento " + .@rec_level + "^000000";
+	mes "1x ^0075E9" + getitemname(.@armor_id) + "^000000";
+	mes "Você tem isso no seu inventário?";
+	next;
+	if(select("Não:Sim") == 1){
+		mes .name_name$;
+		mes "Tudo bem, volte quando estiver pronto.";
+		close;
+	}
+	if(countitem(.@armor_id) < 1){
+		.@armor_id = 0;
+	}
+	callfunc("F_QDO_Get_Eden_weapons", .@rec_level, .@weapons);
+	//.@wep_id = 0;
+	for(.@i = 0; .@i < getarraysize(.@weapons); .@i++){
+		if(countitem(.@weapons[.@i]) > 0){
+			.@wep_id = .@weapons[.@i];
+		}
+	}
+	if(.@wep_id == 0 || .@armor_id == 0){
+		mes .name_name$;
+		mes "Parece que você se enganou.";
+		mes "Tudo bem, volte quando estiver pronto.";
+		close;
+	}
+	delitem(.@wep_id, 1);
+	delitem(.@armor_id, 1);
+	qdo_enchant_eden++;
+	mes .name_name$;
+	mes "Parabéns!";
+	mes "Agora você pode ter acesso aos ^0075E9Encantamentos de Nível " + qdo_enchant_eden + "^000000.";
+	close2;
+	end;
+	
+S_ENCHANT:
+	if(qdo_enchant_eden == 0){
+		mes .name_name$;
+		mes "Você ainda não possui acesso aos encantamentos.";
+		close;
+	}
+	disable_items();
+	mes .name_name$;
+	mes "Qual nível de Encantamento você quer usar?";
+	next;
+	//Selecionando o nível do encantamento
+	.@menu$ = "Nível 1";
+	for(.@i = 2; .@i <= qdo_enchant_eden; .@i++){
+			.@menu$ += ":Nível " + .@i;
+	}
+	.@enc_nivel = select(.@menu$);
+	mes .name_name$;
+	mes "Qual equipamento você quer encantar?";
+	next;
+	//Selecionando o equipamento
+	.@menu$ = "";
+	setarray .@equip_ident$[0],"Capacete", "Armadura", "Arma Esquerda", "Arma Direita/Escudo", "Manto", "Botas";
+	setarray .@equip_slot[0], EQI_HEAD_TOP, EQI_ARMOR, EQI_HAND_L, EQI_HAND_R, EQI_GARMENT, EQI_SHOES;
+	for(.@i = 0; .@i < getarraysize(.@equip_slot); .@i++) {
+		if(getequipisequiped(.@equip_slot[.@i])){
+			.@menu$ += getequipname(.@equip_slot[.@i]) + ":";
+		}else{
+			.@menu$ += "^999999" + .@equip_ident$[.@i] + " (Vazio)^000000:";
+		}
+	}
+	if(.@menu$ == ""){
+		mes .name_name$;
+		mes "Desculpe, mas você não tem nada equipado no momento.";
+		close;
+	}
+	.@selected = select(.@menu$);
+	.@equip_num = .@equip_slot[.@selected - 1];
+	if(!getequipisequiped(.@equip_num)){
+		mes .name_name$;
+		mes "Não há nada aqui. Talvez você tenha retirado o equipamento.";
+		close;
+	}
+	//Selecionando as cartas disponíveis no equipamento
+	setarray .@equip_card[0], getequipcardid(.@equip_num,0), getequipcardid(.@equip_num,1), getequipcardid(.@equip_num,2), getequipcardid(.@equip_num,3);
+	if(.@equip_card[0] == 255 || .@equip_card[0] == 254){
+		mes .name_name$;
+		mes "Não é possível encantar equipamentos que foram forjados por Ferreiros.";
+		close;
+	}
+	//Capturando os dados do equipamento
+	//e verificando se o item é encantável
+	setarray(.@not_ench[0],
+		Book_of_Vicious_Mind,
+		Bow_of_Vicious_Mind,
+		Dagger_of_Vicious_Mind,
+		Fist_of_Vicious_Mind,
+		Huuma_Shuriken_of_Vicious_Mind,
+		Katar_of_Vicious_Mind,
+		Lance_of_Vicious_Mind,
+		Mace_of_Vicious_Mind,
+		Revolver_of_Vicious_Mind,
+		Rod_of_Vicious_Mind,
+		Saber_of_Vicious_Mind,
+		Spear_of_Vicious_Mind,
+		Staff_of_Vicious_Mind,
+		Two_Handed_Axe_of_Vicious_Mind,
+		Two_Handed_Sword_of_Vicious_Mind,
+		Violin_of_Vicious_Mind,
+		Wire_of_Vicious_Mind
+	);
+	.@equip_id = getequipid(.@equip_num);
+	freeloop(1);
+	for(.@i = 0; .@i < getarraysize(.@not_ench); .@i++){
+		if(.@equip_id == .@not_ench[.@i]){
+			.@equip_id = 0;
+		}
+	}
+	freeloop(0);
+	if(.@equip_id == 0){
+		mes .name_name$;
+		mes "Não posso encantar esse item.";
+		close;
+	}
+	.@equip_refine = getequiprefinerycnt(.@equip_num);
+	.@ench_type = 0;
+	if(getiteminfo(.@equip_id, ITEMINFO_TYPE) == 4){
+		mes .name_name$;
+		mes "Qual tipo de encantamento você prefere?";
+		next;
+		.@ench_type = select("Físico:Mágico") - 1;
+	}
+	//Buscando os encantamentos disponíveis
+	callfunc("F_QDO_Get_Enchants", .@equip_id, .@enc_nivel, .@ench_type, .@available_enchants$);
+	if(getarraysize(.@available_enchants$) == 0){
+		mes .name_name$;
+		mes "Nenhum encantamento disponível.";
+		close;
+	}
+	//Sorteando os encantamentos
+	.@q_slots = getiteminfo(.@equip_id, ITEMINFO_SLOTS);
+	.@q_enc = 4 - .@q_slots;
+	if(.@q_enc == 0){
+		mes .name_name$;
+		mes "Não há espaço no seu equipamento para adicionar encantamentos.";
+		close;
+	}
+	.@j = 0;
+	for(.@i = 0; .@i < getarraysize(.@available_enchants$); .@i += 2){
+		if(.@j == (.@q_enc * 2)){
+			break;
+		}
+		.@sorted = rand(getarraysize(.@available_enchants$) / 2) * 2;
+		setarray(.@sorted_enchants$[.@j], .@available_enchants$[.@sorted], .@available_enchants$[.@sorted + 1]);
+		.@j += 2;
+	}
+	//Descontando o valor do serviço
+	.@price = (#QDOVIP ? 5000 : 4000) * .@enc_nivel * .@q_enc;
+	mes .name_name$;
+	mes "Nosso serviço de encantamento possui uma taxa de " + .@price + "z.";
+	mes "Deseja continuar?";
+	next;
+	if(select("Não:Sim") == 1){
+		mes .name_name$;
+		mes "Tudo bem, volte quando estiver pronto.";
+		close;
+	}
+	if(Zeny < .@price){
+		mes .name_name$;
+		mes "Você não tem a quantia necessária.";
+		close;
+	}
+	Zeny -= .@price;
+	//Apresentando os encantamentos ao jogador
+	mes .name_name$;
+	mes "Estes serão o novos encantamentos do seu equipamento:";
+	for(.@i = 0; .@i < getarraysize(.@sorted_enchants$); .@i += 2){
+		mes "^0075E9" + .@sorted_enchants$[.@i + 1] + "^000000";
+	}
+	mes "Deseja continuar?";
+	next;
+	if(select("Não:Sim") == 1){
+		mes .name_name$;
+		mes "Tudo bem!";
+		mes "Seu equipamento não foi modificado.";
+		mes "Volte quando quiser.";
+		close;
+	}
+	//Aplicando os novos atributos
+	.@j = .@q_slots;
+	for(.@i = 0; .@i < getarraysize(.@sorted_enchants$); .@i += 2){
+		.@equip_card[.@j] = atoi(.@sorted_enchants$[.@i]);
+		.@j++;
+	}
+	progressbar("0x0000ff", 1);
+	//Gerando o item com os novos encantamentos
+	specialeffect EF_FIREPILLAR;
+	delequip(.@equip_num);
+	getitem2(.@equip_id, 1, 1, .@equip_refine, 0, .@equip_card[0], .@equip_card[1], .@equip_card[2], .@equip_card[3]);
+	mes .name_name$;
+	mes "Muito bem...";
+	mes "Aproveite seu equipamento!";
+	close2;
+	end;
+}
+
+//<item_id><ench_level><ench_type><array$>
+//[0]ID		[1]Name
+function	script	F_QDO_Get_Enchants	{
+	.@item_id = getarg(0); 		//ID do item
+	.@ench_level = getarg(1); 	//Nível do encantamento
+	.@ench_type = getarg(2);	//Tipo do encantamento [0=Físico | 1=Mágico]
+	.@equip_type = getiteminfo(.@item_id, ITEMINFO_TYPE);
+	//.@equip_subtype = getiteminfo(.@item_id, ITEMINFO_SUBTYPE);
+	
+	switch(.@equip_type){
+		//Weapon
+		case 4:
+			switch(.@ench_level){
+				case 1:
+					if(.@ench_type == 0){
+						setarray(.@enchants$[0],
+							Strength1,		"Strength +1",
+							Agility1,		"Agility +1",
+							Atk1,			"Atk +1%",
+							Atk2,			"Atk +2%",
+							Critical1,		"Critical +1",
+							Attack_Delay_1,	"Attack Speed +4%"
+						);
+					}
+					else{
+						setarray(.@enchants$[0],
+							Inteligence1,	"Inteligence +1",
+							Dexterity1,		"Dexterity +1",
+							Matk1p,			"Matk +1%",
+							Matk2p,			"Matk +2%",
+							Conjure1,		"Matk +5, Variable Cast Time -3%"
+						);
+					}
+					break;
+				case 2:
+					if(.@ench_type == 0){
+						setarray(.@enchants$[0],
+							Strength4,		"Strength +4",
+							Agility4,		"Agility +4",
+							Atk3,			"Atk +3%",
+							Atk4p,			"Atk +4%",
+							Critical3,		"Critical +3",
+							Attack_Delay_2,	"Attack Speed +6%"
+						);
+					}
+					else{
+						setarray(.@enchants$[0],
+							Inteligence4,	"Inteligence +4",
+							Dexterity4,		"Dexterity +4",
+							Matk3p,			"Matk +3%",
+							Matk4p,			"Matk +4%",
+							Conjure2,		"Matk +10, Variable Cast Time -3%"
+						);
+					}
+					break;
+				case 3:
+					if(.@ench_type == 0){
+						setarray(.@enchants$[0],
+							Strength7,		"Strength +7",
+							Agility7,		"Agility +7",
+							Atk5p,			"Atk +5%",
+							Atk6p,			"Atk +6%",
+							Atk7p,			"Atk +7%",
+							Critical5,		"Critical +4",
+							Attack_Delay_3,	"Attack Speed +6%"
+						);
+					}
+					else{
+						setarray(.@enchants$[0],
+							Inteligence7,	"Inteligence +7",
+							Dexterity7,		"Dexterity +7",
+							Matk5p,			"Matk +5%",
+							Matk6p,			"Matk +6%",
+							Matk7p,			"Matk +7%",
+							Conjure3,		"Matk +15, Variable Cast Time -3%"
+						);
+					}
+					break;
+			}
+			break;
+		//Armor/Garment/Boots/Headgear
+		case 5:
+			switch(.@ench_level){
+				case 1:
+					setarray(.@enchants$[0],
+						Inteligence1,	"Inteligence +1",
+						Inteligence2,	"Inteligence +2",
+						Inteligence3,	"Inteligence +3",
+						Strength1,		"Strength +1",
+						Strength2,		"Strength +2",
+						Strength3,		"Strength +3",
+						Dexterity1,		"Dexterity +1",
+						Dexterity2,		"Dexterity +2",
+						Dexterity3,		"Dexterity +3",
+						Agility1,		"Agility +1",
+						Agility2,		"Agility +2",
+						Agility3,		"Agility +3",
+						Vitality1,		"Vitality +1",
+						Vitality2,		"Vitality +2",
+						Vitality3,		"Vitality +3",
+						Luck1,			"Luck +1",
+						Luck2,			"Luck +2",
+						Luck3,			"Luck +3",
+						Mdef2,			"Mdef +2",
+						Def3,			"Def +3",
+						HP100,			"Max HP +100"
+					);
+					break;
+				case 2:
+					setarray(.@enchants$[0],
+						Inteligence4,	"Inteligence +4",
+						Inteligence5,	"Inteligence +5",
+						Inteligence6,	"Inteligence +6",
+						Strength4,		"Strength +4",
+						Strength5,		"Strength +5",
+						Strength6,		"Strength +6",
+						Dexterity4,		"Dexterity +4",
+						Dexterity5,		"Dexterity +5",
+						Dexterity6,		"Dexterity +6",
+						Agility4,		"Agility +4",
+						Agility5,		"Agility +5",
+						Agility6,		"Agility +6",
+						Vitality4,		"Vitality +4",
+						Vitality5,		"Vitality +5",
+						Vitality6,		"Vitality +6",
+						Luck4,			"Luck +4",
+						Luck5,			"Luck +5",
+						Luck6,			"Luck +6",
+						Mdef4,			"Mdef +4",
+						Def6,			"Def +6",
+						HP200,			"Max HP +200",
+						HP300,			"Max HP +300",
+						MHP1,			"Max HP +1%"
+					);
+					break;
+				case 3:
+					setarray(.@enchants$[0],
+						Inteligence7,	"Inteligence +7",
+						Inteligence8,	"Inteligence +8",
+						Inteligence9,	"Inteligence +9",
+						Inteligence10,	"Inteligence +10",
+						Strength7,		"Strength +7",
+						Strength8,		"Strength +8",
+						Strength9,		"Strength +9",
+						Strength10,		"Strength +10",
+						Dexterity7,		"Dexterity +7",
+						Dexterity8,		"Dexterity +8",
+						Dexterity9,		"Dexterity +9",
+						Dexterity10,	"Dexterity +10",
+						Agility7,		"Agility +7",
+						Agility8,		"Agility +8",
+						Agility9,		"Agility +9",
+						Agility10,		"Agility +10",
+						Vitality7,		"Vitality +7",
+						Vitality8,		"Vitality +8",
+						Vitality9,		"Vitality +9",
+						Vitality10,		"Vitality +10",
+						Luck7,			"Luck +7",
+						Luck8,			"Luck +8",
+						Luck9,			"Luck +9",
+						Luck10,			"Luck +10",
+						Mdef8,			"Mdef +8",
+						Mdef10,			"Mdef +10",
+						Def9,			"Def +9",
+						Def12,			"Def +12",
+						HP400,			"Max HP +400",
+						HP500,			"Max HP +500",
+						MHP4,			"Max HP +4%"
+					);
+					break;
+			}
+			break;
+	}
+	for(.@i = 0; .@i < getarraysize(.@enchants$); .@i += 2){
+		if(atoi(.@enchants$[.@i]) == 0){
+			continue;
+		}
+		set getelementofarray(getarg(3), .@i), .@enchants$[.@i];
+		set getelementofarray(getarg(3), .@i + 1), .@enchants$[.@i + 1];
+	}
+	return;
+}
+
+ma_in01,64,21,4	duplicate(Marcus#gt0)	Marcus#gt31	4_M_REPAIR

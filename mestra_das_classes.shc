@@ -1,0 +1,957 @@
+/* ===============================================================
+                           Mestra das Classes
+   ================================================================
+   ----------------------------------------------------------------
+                            COMPATIBILIDADE
+							   Hercules
+   ----------------------------------------------------------------
+                               DESCRIÇÃO
+                      Mestra das classes com 3rd.
+   ----------------------------------------------------------------
+                                VERSÕES
+                        1.0 Criação [QuodDG]
+ * ================================================================
+ */
+
+gef_tower,56,162,2	script	Mestra das Classes#0	4_F_VALKYRIE,{
+	.nome_npc_mc$ = "^FF8B00[= Mestra das Classes =]^000000";
+	cutin("3rd_ab_valkyrie", 1);
+	mes .nome_npc_mc$;
+	mes "Bem vind"+(Sex ? "o" : "a")+" ^0075E9"+strcharinfo(0)+"^000000...";
+	mes "...ao Sistema de Evolução Integrado da ^cc33ffGrande Torre^000000!";
+	mes "O que deseja fazer?";
+	next;
+	switch(select("Mudar de Profissão.:Preços:Skills de Platina:Resetar Atributos:Resetar Habilidades:Estou apenas de passagem.")){
+		case 1:
+			callsub S_Evoluir;
+			break;
+		case 2:
+			callsub S_INFORMACOES;
+			break;
+		case 3:
+			callsub S_Platinum_S;
+			break;
+		case 4:
+			callsub S_RESET_STATUS;
+			break;
+		case 5:
+			callsub S_RESET_SKILLS;
+			break;
+		default:
+			mes .nome_npc_mc$;
+			mes "Tudo bem...";
+			mes "Quando estiver pront" + (Sex ? "o" : "a") + " me procure.";
+			mes "Adeus!";
+			close2;
+			cutin("3rd_ab_valkyrie", 255);
+			end;
+			break;
+	}
+	
+	mes .nome_npc_mc$;
+	mes "Sempre que precisar estarei aqui.";
+	mes "Boa sorte em sua jornada!";
+	close2;
+	cutin("3rd_ab_valkyrie", 255);
+	end;
+	
+S_RESET_STATUS:
+	mes .nome_npc_mc$;
+	mes "Para fazer você esquecer os seus atributos será cobrado " + $@price_reset_status + "z.";
+	mes "Deseja continuar?";
+	next;
+	if(select("Volto depois:Sim") == 1){
+		mes .nome_npc_mc$;
+		mes "Tudo bem.";
+		close2;
+		cutin("3rd_ab_valkyrie", 255);
+		end;
+	}
+	if(Zeny < $@price_reset_status){
+		mes .nome_npc_mc$;
+		mes "Você não tem dinheiro suficiente.";
+		close2;
+		cutin("3rd_ab_valkyrie", 255);
+		end;
+	}
+	Zeny -= $@price_reset_status;
+	resetstatus();
+	mes .nome_npc_mc$;
+	mes "Muito bem, você esqueceu seus atributos.";
+	close2;
+	cutin("3rd_ab_valkyrie", 255);
+	end;
+	
+S_RESET_SKILLS:
+	mes .nome_npc_mc$;
+	mes "Para fazer você esquecer os suas habilidades será cobrado " + $@price_reset_skills + "z.";
+	mes "Deseja continuar?";
+	next;
+	if(select("Volto depois:Sim") == 1){
+		mes .nome_npc_mc$;
+		mes "Tudo bem.";
+		close2;
+		cutin("3rd_ab_valkyrie", 255);
+		end;
+	}
+	if(Zeny < $@price_reset_skills){
+		mes .nome_npc_mc$;
+		mes "Você não tem dinheiro suficiente.";
+		close2;
+		cutin("3rd_ab_valkyrie", 255);
+		end;
+	}
+	Zeny -= $@price_reset_skills;
+	resetskill();
+	mes .nome_npc_mc$;
+	mes "Muito bem, você esqueceu suas habilidades.";
+	close2;
+	cutin("3rd_ab_valkyrie", 255);
+	end;
+	
+S_INFORMACOES:
+	mes .nome_npc_mc$;
+	mes "Aqui está a tabela de Preços para Aventureiros que não possuem o privilégio VIP.";
+	next;
+	mes .nome_npc_mc$;
+	mes "Primeira classe / Primeira classe T. / Ninja / Gunslinger / Taekwon:";
+	mes "^FF0000100z^000000";
+	next;
+	mes .nome_npc_mc$;
+	mes "Segunda Classe / Mestre Taekwon / Espiritualista:";
+	mes "^FF0000100.000z^000000";
+	mes "----";
+	mes "Terceira classe:";
+	mes "^FF0000300.000z^000000";
+	next;
+	mes .nome_npc_mc$;
+	mes "Transcender:";
+	mes "^FF0000500.000z^000000";
+	mes "----";
+	mes "Segunda Classe T.:";
+	mes "^FF0000200.000z^000000";
+	next;
+	mes .nome_npc_mc$;
+	mes "Oboro, Kangerou e Rebellion:";
+	mes "^FF0000300.000z^000000";
+	mes "----";
+	mes "Super Aprendiz:";
+	mes "^FF000020.000z^000000";
+	next;
+	mes .nome_npc_mc$;
+	mes "Super Aprendiz E.:";
+	mes "^FF0000500.000z^000000";
+	mes "----";
+	mes "Terceira classe T.:";
+	mes "^FF0000300.000z^000000";
+	next;
+	mes .nome_npc_mc$;
+	mes "Esses são os valores.";
+	close2;
+	cutin("3rd_ab_valkyrie", 255);
+	end;
+	
+S_Platinum_S:
+	if(callfunc("F_PLATINUM_SKILL_G")){
+		mes .nome_npc_mc$;
+		mes "Parabéns, você aprendeu todas as Habilidades de Platina.";
+		mes "Boa sorte aventureiro(a)!";
+	}else{
+		mes .nome_npc_mc$;
+		mes "Desculpa mas não há nenhuma Habilidade de Platina para lhe ensinar.";
+	}
+	close2;
+	cutin("3rd_ab_valkyrie", 255);
+	end;
+
+S_Evoluir:
+	deletearray @ids_class[0],8;
+	set @menu$, "";
+	set @count, 0;
+	
+	if(Class == Job_Novice){
+		if($@expanded_classes){
+			mes .nome_npc_mc$;
+			mes "Até o momento eu posso evoluir você para dois tipos de Classes: ^cc33ffNormal^000000 e ^cc33ffExpandido^000000.";
+			mes "Mas somente enquanto você for ^cc33ff"+(jobname(Job_Novice))+"^000000.";
+			mes "Que tipo de evolução você deseja?";
+			next;
+			set .@change_e, select("Normal:Expandida") - 1;
+		}else{
+			set .@change_e, 0;
+		}
+	}
+	
+	copyarray @ids_class[0], callfunc("F_NEXTCLASSEID", Class, .@change_e), (Class ? 2 : 8);
+	
+	for(set .@i, 0; .@i < getarraysize(@ids_class); set .@i, .@i + 1){
+		if(@ids_class[.@i] <= 0) continue;
+		set @menu$, @menu$ + "^0075E9" + jobname(@ids_class[.@i])+"^000000:"; 
+		set @count, @count + 1;
+	}
+	
+	if(@menu$ == ""){
+		mes .nome_npc_mc$;
+		mes "Você chegou ao limite de evolução!";
+		mes "Se quer tanto ficar mais forte, por que não procura por alguns itens mais poderosos?";
+		mes "Houvi rumores de que há bastante itens novos sendo descobertos ultimamente.";
+		close2;
+		cutin("3rd_ab_valkyrie", 255);
+		end;
+	}
+	
+	if(@count > 1){
+		mes .nome_npc_mc$;
+		mes "Em alguns momentos você poderá escolher entre duas ou mais Profissões, mas chegará o momento que você só terá uma opção.";
+		next;
+		mes .nome_npc_mc$;
+		mes "Quando esse momento chegar eu apenas irei lhe evoluir. Por enquanto você escolhe!";
+		mes "Qual Profissão você prefere?";
+		next;
+		set @n, select(@menu$) - 1;
+	}
+	else{
+		set @n, 0;
+		mes .nome_npc_mc$;
+		mes "Sua próxima evolução é ^cc33ff"+(jobname(@ids_class[@n]))+"^000000.";
+		mes "Deseja evoluir agora?";
+		next;
+		if(select("Eu volto depois.:Claro, agora mesmo! xD") == 1){
+			mes .nome_npc_mc$;
+			mes "Tudo bem...";
+			mes "Quando se decidir estarei lhe esperando aqui.";
+			mes "Adeus!";
+			close2;
+			cutin("3rd_ab_valkyrie", 255);
+			end;
+		}
+	}
+	
+	if(@ids_class[@n] == Job_Novice_High){
+		mes .nome_npc_mc$;
+		mes "Você está prestes a Transcender.";
+		mes "Isso dará início a sua nova vida como alguém que superou os limites de um ser humano comum.";
+		next;
+		mes .nome_npc_mc$;
+		mes "Todos os seus atributos e habilidades serão resetados.";
+		mes "Mas não fique triste...";
+		mes "Você conseguirá todos de volta e mais rápido ainda, além de alguns novos poderes!";
+		next;
+		mes .nome_npc_mc$;
+		mes "Você está preparad"+(Sex ? "o" : "a")+" para essa nova vida?";
+		next;
+		if(select("Não, não estou pont"+(Sex ? "o" : "a")+" para esse tipo de vida.:Claro, não vejo a hora de me tornar mais forte!") == 1){
+			mes .nome_npc_mc$;
+			mes "É uma pena...";
+			mes "Você poderia se tornar alguém bem forte!";
+			mes "Mas... ^0075E9*Suspiro*^000000 tudo bem...";
+			mes "Se mudar de ideia estarei aqui.";
+			close2;
+			cutin("3rd_ab_valkyrie", 255);
+			end;
+		}
+	}
+	
+	explode(@req$, callfunc("F_GETLVREQ2", @ids_class[@n]), ":");
+	if(!callfunc("F_CHECKLEVELREQ", @req$[0], @req$[1])){
+		mes .nome_npc_mc$;
+		mes "Você ainda não tem nível para evoluir. É necessário que você tenha pelo menos:";
+		mes "^ff0000Nível de Base "+@req$[0]+"^000000.";
+		mes "^ff0000Nível de Classe "+@req$[1]+"^000000.";
+		if($@price_change && !#QDOVIP){
+			mes "Quantia de ^ff0000"+@req$[2]+"z^000000.";
+		}
+		close2;
+		cutin("3rd_ab_valkyrie", 255);
+		end;
+	}
+	
+	if(!callfunc("F_CHECK_ALL")){
+		mes .nome_npc_mc$;
+		mes "Não posso continuar agora.";
+		mes "Antes de continuar verifique:";
+		mes "- Se você está usando ^ff0000Falcão^000000, ^ff0000Carrinho ^000000e ^ff0000Montarias^000000.";
+		if($@check_skills) mes "- Se todos os ^ff0000Pontos de Habilidades^000000 foram atribuídos.";
+		if($@check_stats) mes "- Se todos os ^ff0000Pontos de atributos^000000 atribuídos.";
+		if($@check_weight) mes "- Se você tem pelo menos ^ff0000"+$@check_weight+"%^000000 do peso total livre.";
+		close2;
+		cutin("3rd_ab_valkyrie", 255);
+		end;
+	}
+	
+	if($@price_change && !#QDOVIP){
+		mes .nome_npc_mc$;
+		mes "O valor por este serviço é de ^ff0000" + atoi(@req$[2]) + "z^000000.";
+		mes "Você deseja pagar?";
+		next;
+		if(select("Não:Com certeza!") == 1){
+			mes .nome_npc_mc$;
+			mes "Pois bem!";
+			mes "Se mudar de ideia estarei aqui.";
+			close2;
+			cutin("3rd_ab_valkyrie", 255);
+			end;
+		}
+	}
+	
+	if($@price_change && !#QDOVIP && Zeny < atoi(@req$[2])){
+		mes .nome_npc_mc$;
+		mes "Você não tem Zeny suficiente.";
+		mes "Para que eu complete o serviço são necessários ^FF0000" + atoi(@req$[2]) + "z^000000.";
+		close2;
+		cutin("3rd_ab_valkyrie", 255);
+		end;
+	}else if($@price_change && !#QDOVIP && Zeny >= atoi(@req$[2])) {
+		set Zeny, Zeny - atoi(@req$[2]);
+		dispbottom "Você gastou " + @req$[2] + "z.";
+	}
+	
+	callfunc("F_JOBCHANGE_MC", @ids_class[@n]);
+	
+	mes .nome_npc_mc$;
+	mes "Parabéns...";
+	mes "Sua nova profissão é ^cc33ff"+jobname(@ids_class[@n])+"^000000";
+	next;
+	if(callfunc("F_PLATINUM_SKILL_G")){
+		mes .nome_npc_mc$;
+		mes "Parabéns, você aprendeu todas as Habilidades de Platina.";
+		mes "Boa sorte aventureiro(a)!";
+		next;
+	}
+	return;
+
+OnInit:
+	//Checa se há pontos extras de skill? [0 = Não | 1 = Sim]
+	set $@check_skills, 1;
+	
+	//Checa se há pontos extras de atributos? [0 = Não | 1 = Sim]
+	set $@check_stats, 0;
+	
+	//Quanto de peso deve estar livre para que o personagem possa mudar de classe?
+	//Valor em porcentagem (%). 0 para desabilitado
+	set $@check_weight, 20;
+	
+	//Ativar habilidades de platinum automaticamente? [0 = Não | 1 = Sim]
+	set $@enable_platinum_skill, 1;
+	
+	//Receber itens na mudança de classe? [0 = Não | 1 = Sim]
+	set $@enable_item, 1;
+	
+	//Usar modo renovação ou pre-renovação? [0 = Pre-renovação| 1 = Renovação]
+	//Modo renovação ativará automaticamente as 3rd classes
+	//Desabilitar o modo renovação, mesmo com emulador nesse modo, irá exclui as
+	//3rd classes da lista de evolução
+	set $@renewal, 1;
+	
+	//Cobrar um valor, em zeny, para mudar a classe de personagens não-vip. [0 = Não cobrar]
+	set $@price_change, 1;
+	
+	//Valor para resetar atributos
+	set $@price_reset_status, 20000;
+	
+	//Valor para resetar habilidades
+	set $@price_reset_skills, 20000;
+	
+	//Aceita evoluir para as terceiras classes
+	set $@trd_classes, 1;
+	
+	//Aceita evoluir para as classes expandidas
+	set $@expanded_classes, 0;
+	
+	/* PARA EVITAR ERROS GRAVES NO SCRIPT, BANCO DE DADOS E SERVER, 
+	NÃO ALTRAR DAQUI POR DIANTE A MENOS QUE SAIBA EXATAMENTE O QUE ESTÁ FAZENDO. */
+	
+	//Habilidades de Platina
+	setarray $@platinum_skillN[0], 	Job_Novice,			142,		143,		0,			0,			0,
+									Job_Swordman,		144,		145,		146,		0,			0,
+									Job_Mage,			157,		0,			0,			0,			0,
+									Job_Archer,			147,		148,		0,			0,			0,
+									Job_Acolyte,		156,		0,			0,			0,			0,
+									Job_Merchant,		155,		154,		153,		0,			0,
+									Job_Thief,			149,		150,		151,		152,		0,
+									Job_Knight,			1001,		0,			0,			0,			0,
+									Job_Priest,			1014,		0,			0,			0,			0,
+									Job_Wizard,			1006,		0,			0,			0,			0,
+									Job_Blacksmith,		1012,		1013,		0,			0,			0,
+									Job_Hunter,			1009,		0,			0,			0,			0,
+									Job_Assassin,		1004,		1003,		0,			0,			0,
+									Job_Crusader,		1002,		0,			0,			0,			0,
+									Job_Monk,			1015,		1016,		0,			0,			0,
+									Job_Sage,			1018,		1007,		1017,		1019,		1008,
+									Job_Rogue,			1005,		0,			0,			0,			0,
+									Job_Alchemist,		238,		0,			0,			0,			0,
+									Job_Bard,			1010,		0,			0,			0,			0,
+									Job_Dancer,			1011,		0,			0,			0,			0;
+									//Transcedentais 1-2
+	setarray $@platinum_skillT[0], 	Job_Novice_High,	142,		143,		0,			0,			0,
+									Job_Swordman_High,	144,		145,		146,		0,			0,
+									Job_Mage_High,		157,		0,			0,			0,			0,
+									Job_Archer_High,	147,		148,		0,			0,			0,
+									Job_Acolyte_High,	156,		0,			0,			0,			0,
+									Job_Merchant_High,	155,		154,		153,		0,			0,
+									Job_Thief_High,		149,		150,		151,		152,		0,
+									Job_Lord_Knight,	1001,		0,			0,			0,			0,
+									Job_High_Priest,	1014,		0,			0,			0,			0,
+									Job_High_Wizard,	1006,		0,			0,			0,			0,
+									Job_Whitesmith,		1012,		1013,		0,			0,			0,
+									Job_Sniper,			1009,		0,			0,			0,			0,
+									Job_Assassin_Cross,	1004,		1003,		0,			0,			0,
+									Job_Paladin,		1002,		0,			0,			0,			0,
+									Job_Champion,		1015,		1016,		0,			0,			0,
+									Job_Professor,		1018,		1007,		1017,		1019,		1008,
+									Job_Stalker,		1005,		0,			0,			0,			0,
+									Job_Creator,		238,		0,			0,			0,			0,
+									Job_Clown,			1010,		0,			0,			0,			0,
+									Job_Gypsy,			1011,		0,			0,			0,			0;
+	
+	//Itens ganhos ao mudar de profissão
+	setarray $@Job_Swordman[0], 			13415,	1;	//Alfanje de Iniciante
+	setarray $@Job_Mage[0],					1639,	1;	//Cajado de Iniciantes
+	setarray $@Job_Acolyte[0],				1545,	1;	//Maça de Iniciante
+	setarray $@Job_Merchant[0],				1381,	1;	//Machado de Batalha de Iniciant	
+	setarray $@Job_Knight[0],				656,	7;	//Poção do Despertar
+	setarray $@Job_Priest[0],				1551,	1;	//Bíblia
+	setarray $@Job_Wizard[0],				505,	6;	//Poção Azul
+	setarray $@Job_Blacksmith[0],			999,	30;	//Aço
+	setarray $@Job_Hunter[0],				1718,	1;	//Arco de Caça
+	setarray $@Job_Assassin[0],				1208,	1; 	//Main Gauche[4]
+	setarray $@Job_Crusader[0],				504,	12;	//Poção Branca
+	setarray $@Job_Monk[0],					1804,	1;	//Soqueira
+	setarray $@Job_Sage[0],					1550,	1;	//Book
+	setarray $@Job_Rogue[0],				1220,	1;	//Gladius_
+	setarray $@Job_Alchemist[0],			7133,	1;	//Manual de Criação: Vol.8: Poções Compactas
+	setarray $@Job_Bard[0],					1903,	1;	//Bandolin
+	setarray $@Job_Dancer[0],				1953,	1;	//Cordame
+	setarray $@Job_Rune_Knight_T[0],		5746, 	1,	2795,	1;	//Poder das Runas, Anel de Maçã Verde
+	setarray $@Job_Warlock_T[0],			5753,	1,	2795,	1;	//Mistério da Magia, Anel de Maçã Verde
+	setarray $@Job_Ranger_T[0],				5748,	1,	2795,	1,	6124,	1;	//Visão do Sentinela, Anel de Maçã Verde, Flauta Uivante's_Flute
+	setarray $@Job_Arch_Bishop_T[0],		5747,	1,	2795,	1;	//Desejo dos Deuses, Anel de Maçã Verde
+	setarray $@Job_Mechanic_T[0],			5749,	1,	2795,	1;	//Talento do Piloto, Anel de Maçã Verde
+	setarray $@Job_Mechanic_TF[0],			5760,	1,	2795,	1;	//Talento do Piloto, Anel de Maçã Verde
+	setarray $@Job_Guillotine_Cross_T[0],	5755,	1,	2795,	1;	//Som do Silêncio, Anel de Maçã Verde
+	setarray $@Job_Royal_Guard_T[0],		5757,	1,	2795,	1;	//Ordem do Protetor, Anel de Maçã Verde
+	setarray $@Job_Sorcerer_T[0],			5756,	1,	2795,	1;	//Sussurro dos Elementos, Anel de Maçã Verde
+	setarray $@Job_Minstrel_T[0],			5751,	1,	2795,	1;	//Inspiração do Artista, Anel de Maçã Verde
+	setarray $@Job_Wanderer_T[0],			5758,	1,	2795,	1;	//Súplica do Cisne, Anel de Maçã Verde
+	setarray $@Job_Sura_T[0],				5754,	1,	2795,	1;	//Disciplina do Espírito, Anel de Maçã Verde
+	setarray $@Job_Genetic_T[0],			5752,	1,	2795,	1;	//Toque de Midas, Anel de Maçã Verde
+	setarray $@Job_Shadow_Chaser_T[0],		6121,	1,	6122,	1,	2795,	1,	5750,	1;	//Pincel de Maquiagem, Pincel de Grafite, Anel de Maçã Verde, Artifício das Sombras
+	
+	if(RENEWAL){
+		setarray $@Job_Archer[0],			1742,	1,	12004,	1, 	12009, 	1, 	12008, 	1; //Arco Composto de Iniciante, Aljave, Aljave de Flechas de Prata, Aljave de Flechas de Fogo
+		setarray $@Job_Thief[0],			13041,	1;	//Main Gauche de Iniciante
+	}
+	else{
+		setarray $@Job_Archer[0],			1702,	1,	1750,	1000; //Arco[4], Flecha
+		setarray $@Job_Thief[0],			668,	1;	//Envelope Vermelho
+	}
+	
+	end;
+}
+
+mid_campin,90,133,4	duplicate(Mestra das Classes#0)	Mestra das Classes#13	4_F_VALKYRIE
+malaya,281,359,4	duplicate(Mestra das Classes#0)	Mestra das Classes#31	4_F_VALKYRIE
+
+//====================
+//== Functions
+//====================
+
+function	script	F_NEXTCLASSEID	{
+	deletearray @next_c[0],8;
+	set .@class, getarg(0);
+	
+	switch(.@class){
+		/* ----- Aprendiz / Primeiras classes ----- */
+		case Job_Novice:
+			if(getarg(1)) setarray @next_c[0], Job_SuperNovice, Job_Ninja, Job_Taekwon, Job_Gunslinger;
+			else setarray @next_c[0], Job_Swordman, Job_Mage, Job_Archer, Job_Acolyte, Job_Merchant, Job_Thief;
+			break;
+		case Job_Swordman:
+			setarray @next_c[0], Job_Knight, Job_Crusader;
+			break;
+		case Job_Mage:
+			setarray @next_c[0], Job_Wizard, Job_Sage;
+			break;
+		case Job_Archer:
+			setarray @next_c[0], Job_Hunter, (Sex ? Job_Bard : Job_Dancer);
+			break;
+		case Job_Acolyte:
+			setarray @next_c[0], Job_Priest, Job_Monk;
+			break;
+		case Job_Merchant:
+			setarray @next_c[0], Job_Blacksmith, Job_Alchemist;
+			break;
+		case Job_Thief:
+			setarray @next_c[0], Job_Assassin, Job_Rogue;
+			break;
+		/* ----- Segundas Classes ----- */
+		case Job_Knight:
+			setarray @next_c[0], Job_Novice_High;
+			break;
+		case Job_Crusader:
+			setarray @next_c[0], Job_Novice_High;
+			break;
+		case Job_Wizard:
+			setarray @next_c[0], Job_Novice_High;
+			break;
+		case Job_Sage:
+			setarray @next_c[0], Job_Novice_High;
+			break;
+		case Job_Hunter:
+			setarray @next_c[0], Job_Novice_High;
+			break;
+		case Job_Bard:
+			setarray @next_c[0], Job_Novice_High;
+			break;
+		case Job_Dancer:
+			setarray @next_c[0], Job_Novice_High;
+			break;
+		case Job_Priest:
+			setarray @next_c[0], Job_Novice_High;
+			break;
+		case Job_Monk:
+			setarray @next_c[0], Job_Novice_High;
+			break;
+		case Job_Blacksmith:
+			setarray @next_c[0], Job_Novice_High;
+			break;
+		case Job_Alchemist:
+			setarray @next_c[0], Job_Novice_High;
+			break;
+		case Job_Assassin:
+			setarray @next_c[0], Job_Novice_High;
+			break;
+		case Job_Rogue:
+			setarray @next_c[0], Job_Novice_High;
+			break;
+		case Job_SuperNovice:
+			setarray @next_c[0], Job_Super_Novice_E;
+			break;
+		/* ----- Aprendiz Transcendental / Primeiras Classes Transcendentais ----- */
+		case Job_Novice_High:
+			if(ADVJOB == Job_Lord_Knight || ADVJOB == Job_Paladin) set @evo, Job_Swordman_High;
+			else if(ADVJOB == Job_High_Wizard || ADVJOB == Job_Professor) set @evo, Job_Mage_High;
+			else if(ADVJOB == Job_Sniper || ADVJOB == Job_Clown || ADVJOB == Job_Gypsy) set @evo, Job_Archer_High;
+			else if(ADVJOB == Job_High_Priest || ADVJOB == Job_Champion) set @evo, Job_Acolyte_High;
+			else if(ADVJOB == Job_Whitesmith || ADVJOB == Job_Creator) set @evo, Job_Merchant_High;
+			else if(ADVJOB == Job_Assassin_Cross || ADVJOB == Job_Stalker) set @evo, Job_Thief_High;
+			
+			if(@evo > 0) setarray @next_c[0], @evo;
+			break;
+		case Job_Swordman_High:
+			setarray @next_c[0], ADVJOB;
+			break;
+		case Job_Mage_High:
+			setarray @next_c[0], ADVJOB;
+			break;
+		case Job_Archer_High:
+			setarray @next_c[0], ADVJOB;
+			break;
+		case Job_Acolyte_High:
+			setarray @next_c[0], ADVJOB;
+			break;
+		case Job_Merchant_High:
+			setarray @next_c[0], ADVJOB;
+			break;
+		case Job_Thief_High:
+			setarray @next_c[0], ADVJOB;
+			break;
+		/* ----- Segundas Classes Transcendental ----- */
+		case Job_Lord_Knight:
+			if($@trd_classes && $@renewal) setarray @next_c[0], roclass(eaclass()|EAJL_THIRD);
+			else setarray @next_c[0], -1;
+			break;
+		case Job_High_Priest:
+			if($@trd_classes && $@renewal) setarray @next_c[0], roclass(eaclass()|EAJL_THIRD);
+			else setarray @next_c[0], -1;
+			break;
+		case Job_High_Wizard:
+			if($@trd_classes && $@renewal) setarray @next_c[0], roclass(eaclass()|EAJL_THIRD);
+			else setarray @next_c[0], -1;
+			break;
+		case Job_Whitesmith:
+			if($@trd_classes && $@renewal) setarray @next_c[0], roclass(eaclass()|EAJL_THIRD);
+			else setarray @next_c[0], -1;
+			break;
+		case Job_Sniper:
+			if($@trd_classes && $@renewal) setarray @next_c[0], roclass(eaclass()|EAJL_THIRD);
+			else setarray @next_c[0], -1;
+			break;
+		case Job_Assassin_Cross:
+			if($@trd_classes && $@renewal) setarray @next_c[0], roclass(eaclass()|EAJL_THIRD);
+			else setarray @next_c[0], -1;
+			break;
+		case Job_Paladin:
+			if($@trd_classes && $@renewal) setarray @next_c[0], roclass(eaclass()|EAJL_THIRD);
+			else setarray @next_c[0], -1;
+			break;
+		case Job_Champion:
+			if($@trd_classes && $@renewal) setarray @next_c[0], roclass(eaclass()|EAJL_THIRD);
+			else setarray @next_c[0], -1;
+			break;
+		case Job_Professor:
+			if($@trd_classes && $@renewal) setarray @next_c[0], roclass(eaclass()|EAJL_THIRD);
+			else setarray @next_c[0], -1;
+			break;
+		case Job_Stalker:
+			if($@trd_classes && $@renewal) setarray @next_c[0], roclass(eaclass()|EAJL_THIRD);
+			else setarray @next_c[0], -1;
+			break;
+		case Job_Creator:
+			if($@trd_classes && $@renewal) setarray @next_c[0], roclass(eaclass()|EAJL_THIRD);
+			else setarray @next_c[0], -1;
+			break;
+		case Job_Clown:
+			if($@trd_classes && $@renewal) setarray @next_c[0], roclass(eaclass()|EAJL_THIRD);
+			else setarray @next_c[0], -1;
+			break;
+		case Job_Gypsy:
+			if($@trd_classes && $@renewal) setarray @next_c[0], roclass(eaclass()|EAJL_THIRD);
+			else setarray @next_c[0], -1;
+			break;
+		/* ----- Expandida ----- */
+		case Job_Ninja:
+			setarray @next_c[0], (Sex ? Job_Kagerou : Job_Oboro);
+			break;
+		case Job_Taekwon:
+			setarray @next_c[0], Job_Star_Gladiator, Job_Soul_Linker;
+			break;
+		case Job_Gunslinger:
+			setarray @next_c[0], Job_Rebellion;
+			break;
+		/* ----- Valor Padrão para 3rd Transcedental ----- */
+		default:
+			setarray @next_c[0], -1;
+			break;
+	}
+	
+	return @next_c;
+}
+
+function	script	F_CHECK_ALL	{
+	set @percent, (Weight * 100) / MaxWeight;
+	
+	if($@check_stats && StatusPoint) return 0;
+	if($@check_skills && ( SkillPoint || getskilllv("NV_BASIC") < 9 )) return 0;
+	//if($@check_skills && getskilllv("NV_BASIC") < 9) return 0;
+	if($@check_weight && @percent > (100 - $@check_weight)) return 0;
+	if(checkmount() || checkcart() || checkfalcon()) return 0;
+	
+	return 1;
+}
+
+function	script	F_JOBCHANGE_MC	{
+	set @new_class, getarg(0);
+	
+	if(@new_class == Job_Novice_High) {
+		ADVJOB = Class + Job_Novice_High; //memo the target 3rd Job ID
+		if(ADVJOB == Job_Lord_Knight2) ADVJOB = Job_Lord_Knight;
+		if(ADVJOB == Job_Paladin2) ADVJOB = Job_Paladin;
+	}
+	
+	if(@new_class == Job_Novice_High || Upper == 1){
+		jobchange @new_class;
+		
+		if(Class >= Job_Lord_Knight && Class <= Job_Gypsy && ADVJOB != 0){
+			ADVJOB = 0;
+		}
+	}else{
+		callfunc "Job_Change", @new_class;
+	}
+	
+	specialeffect 514;
+	specialeffect 381;
+	
+	if(Class == Job_Novice_High) {
+		//qdo_nivel_torre = 1; //<-Reseta o nível na torre
+		resetlvl(1);
+		MISC_QUEST |= 1024; //<-Evento pra Reset de Skill
+		skill 142,1,0;
+		skill 143,1,0;
+	}
+	
+	if($@enable_item){
+		set .@class_constant$, callfunc("F_GETVARCLASS", Class, Sex);
+		if(.@class_constant$ == "") return 1;
+		set .@varclass_name$, "$@" + .@class_constant$;
+		if(Class == Job_Mechanic_T && !Sex) set .@varclass_name$, .@varclass_name$ + "F";
+		for(set .@i, 0; .@i < getarraysize(getd(.@varclass_name$)); set .@i, .@i + 2){
+			getitem getd(.@varclass_name$+"["+.@i+"]"), getd(.@varclass_name$+"["+(.@i + 1)+"]");
+		}
+	}
+	
+	return 1;
+}
+
+function	script	F_PLATINUM_SKILL_G	{
+	@aprendeu = 0;
+	if($@enable_platinum_skill){
+		for(set .@i, 0; .@i < getarraysize($@platinum_skillN); set .@i, .@i + 6){
+			if(Class == $@platinum_skillN[.@i]){
+				if($@platinum_skillN[.@i + 1]){
+					if(!getskilllv($@platinum_skillN[.@i + 1])){
+						skill $@platinum_skillN[.@i + 1], 1, 0;
+						@aprendeu = 1;
+					}
+				} 
+				if($@platinum_skillN[.@i + 2]){
+					if(!getskilllv($@platinum_skillN[.@i + 2])){
+						skill $@platinum_skillN[.@i + 2], 1, 0;
+						@aprendeu = 1;
+					}
+				}
+				if($@platinum_skillN[.@i + 3]){
+					if(!getskilllv($@platinum_skillN[.@i + 3])){
+						skill $@platinum_skillN[.@i + 3], 1, 0;
+						@aprendeu = 1;
+					}
+				}
+				if($@platinum_skillN[.@i + 4]){
+					if(!getskilllv($@platinum_skillN[.@i + 4])){
+						skill $@platinum_skillN[.@i + 4], 1, 0;
+						@aprendeu = 1;
+					}
+				}
+				if($@platinum_skillN[.@i + 5]){
+					if(!getskilllv($@platinum_skillN[.@i + 5])){
+						skill $@platinum_skillN[.@i + 5], 1, 0;
+						@aprendeu = 1;
+					}
+				}
+				break;
+			}
+			if(Class == $@platinum_skillT[.@i]){
+				if($@platinum_skillT[.@i + 1]){
+					if(!getskilllv($@platinum_skillT[.@i + 1])){
+						skill $@platinum_skillT[.@i + 1], 1, 0;
+						@aprendeu = 1;
+					}
+				}
+				if($@platinum_skillT[.@i + 2]){
+					if(!getskilllv($@platinum_skillT[.@i + 2])){
+						skill $@platinum_skillT[.@i + 2], 1, 0;
+						@aprendeu = 1;
+					}
+				}
+				if($@platinum_skillT[.@i + 3]){
+					if(!getskilllv($@platinum_skillT[.@i + 3])){
+						skill $@platinum_skillT[.@i + 3], 1, 0;
+						@aprendeu = 1;
+					}
+				}
+				if($@platinum_skillT[.@i + 4]){
+					if(!getskilllv($@platinum_skillT[.@i + 4])){
+						skill $@platinum_skillT[.@i + 4], 1, 0;
+						@aprendeu = 1;
+					}
+				}
+				if($@platinum_skillT[.@i + 5]){
+					if(!getskilllv($@platinum_skillT[.@i + 5])){
+						skill $@platinum_skillT[.@i + 5], 1, 0;
+						@aprendeu = 1;
+					}
+				}
+				break;
+			}
+		}
+	}
+	
+	return @aprendeu;
+}
+
+function	script	F_GETVARCLASS	{
+	switch(getarg(0)){
+		case Job_Novice:
+			return "Job_Novice";
+		//-- Primeira Classe
+		case Job_Swordman:
+			return "Job_Swordman";
+		case Job_Mage:
+			return "Job_Mage";
+		case Job_Archer:
+			return "Job_Archer";
+		case Job_Acolyte:
+			return "Job_Acolyte";
+		case Job_Merchant:
+			return "Job_Merchant";
+		case Job_Thief:
+			return "Job_Thief";
+		//-- Segunda Classe
+		case Job_Knight:
+			return "Job_Knight";
+		case Job_Priest:
+			return "Job_Priest";
+		case Job_Wizard:
+			return "Job_Wizard";
+		case Job_Blacksmith:
+			return "Job_Blacksmith";
+		case Job_Hunter:
+			return "Job_Hunter";
+		case Job_Assassin:
+			return "Job_Assassin";
+		case Job_Knight2:
+			return "Job_Knight2";
+		case Job_Crusader:
+			return "Job_Crusader";
+		case Job_Monk:
+			return "Job_Monk";
+		case Job_Sage:
+			return "Job_Sage";
+		case Job_Rogue:
+			return "Job_Rogue";
+		case Job_Alchemist:
+			return "Job_Alchemist";
+		case Job_Bard:
+			return "Job_Bard";
+		case Job_Dancer:
+			return "Job_Dancer";
+		case Job_Crusader2:
+			return "Job_Crusader2";
+		//-- Classe Especial
+		case Job_Wedding:
+			return "Job_Wedding";
+		//-- Classe Expandida
+		case Job_SuperNovice:
+			return "Job_SuperNovice";
+		case Job_Gunslinger:
+			return "Job_Gunslinger";
+		case Job_Ninja:
+			return "Job_Ninja";
+		//-- Classe Especial
+		case Job_Xmas:
+			return "Job_Xmas";
+		case Job_Summer:
+			return "Job_Summer";
+		//-- Aprendiz T.
+		case Job_Novice_High:
+			return "Job_Novice_High";
+		//-- Primeira Classe T.
+		case Job_Swordman_High:
+			return "Job_Swordman_High";
+		case Job_Mage_High:
+			return "Job_Mage_High";
+		case Job_Archer_High:
+			return "Job_Archer_High";
+		case Job_Acolyte_High:
+			return "Job_Acolyte_High";
+		case Job_Merchant_High:
+			return "Job_Merchant_High";
+		case Job_Thief_High:
+			return "Job_Thief_High";
+		//-- Segunda Classe T.
+		case Job_Lord_Knight:
+			return "Job_Lord_Knight";
+		case Job_High_Priest:
+			return "Job_High_Priest";
+		case Job_High_Wizard:
+			return "Job_High_Wizard";
+		case Job_Whitesmith:
+			return "Job_Whitesmith";
+		case Job_Sniper:
+			return "Job_Sniper";
+		case Job_Assassin_Cross:
+			return "Job_Assassin_Cross";
+		case Job_Lord_Knight2:
+			return "Job_Lord_Knight2";
+		case Job_Paladin:
+			return "Job_Paladin";
+		case Job_Champion:
+			return "Job_Champion";
+		case Job_Professor:
+			return "Job_Professor";
+		case Job_Stalker:
+			return "Job_Stalker";
+		case Job_Creator:
+			return "Job_Creator";
+		case Job_Clown:
+			return "Job_Clown";
+		case Job_Gypsy:
+			return "Job_Gypsy";
+		case Job_Paladin2:
+			return "Job_Paladin2";
+		//-- 3rd Classe T.
+		case Job_Rune_Knight_T:
+			return "Job_Rune_Knight_T";
+		case Job_Warlock_T:
+			return "Job_Warlock_T";
+		case Job_Ranger_T:
+			return "Job_Ranger_T";
+		case Job_Arch_Bishop_T:
+			return "Job_Arch_Bishop_T";
+		case Job_Mechanic_T:
+			return getarg(1) == SEX_MALE ? "Job_Mechanic_T" : "Job_Mechanic_TF";
+		case Job_Guillotine_Cross_T:
+			return "Job_Guillotine_Cross_T";
+		case Job_Royal_Guard_T:
+			return "Job_Royal_Guard_T";
+		case Job_Sorcerer_T:
+			return "Job_Sorcerer_T";
+		case Job_Minstrel_T:
+			return "Job_Minstrel_T";
+		case Job_Wanderer_T:
+			return "Job_Wanderer_T";
+		case Job_Sura_T:
+			return "Job_Sura_T";
+		case Job_Genetic_T:
+			return "Job_Genetic_T";
+		case Job_Shadow_Chaser_T:
+			return "Job_Shadow_Chaser_T";
+		default:
+			return "";
+	}
+}
+
+function	script	F_GETLVREQ2	{
+	set .@lv_r$[0],	" 1:10:100"; //Primeira classe / Primeira classe T. / Ninja / Gunslinger / Taekwon
+	set .@lv_r$[1],	" 1:40:10000"; //Segunda Classe / Mestre Taekwon / Espiritualista
+	set .@lv_r$[2],	"99:50:30000"; //Terceira classe
+	set .@lv_r$[3],	"99:40:50000"; //Transcender
+	set .@lv_r$[4],	" 1:40:20000"; //Segunda Classe T.
+	set .@lv_r$[5],	"99:70:30000"; //Oboro, Kangerou e Rebellion
+	set .@lv_r$[6],	"45: 1:2000"; //Super Aprendiz
+	set .@lv_r$[7],	"99:99:50000"; //Super Aprendiz E.
+	set .@lv_r$[8],	"99:60:30000"; //Terceira classe T.
+	
+	set @next_class, getarg(0);
+	
+	if(@next_class == Job_Novice_High){ //Transcender
+		return .@lv_r$[3];
+	}
+	else if(@next_class == Job_SuperNovice){ //Super Aprendiz
+		return .@lv_r$[6];
+	}
+	else if(@next_class == Job_Super_Novice_E){ //Super Aprendiz E.
+		return .@lv_r$[7];
+	}
+	else if(@next_class >= Job_Swordman && @next_class <= Job_Thief || 
+			@next_class >= Job_Swordman_High && @next_class <= Job_Thief_High || 
+			@next_class == Job_Ninja || @next_class == Job_Taekwon || 
+			@next_class == Job_Ninja || @next_class == Job_Gunslinger){ //Primeira classe / Primeira classe T. / Ninja / Gunslinger / Taekwon
+		return .@lv_r$[0];
+	}
+	else if(@next_class >= Job_Knight && @next_class <= Job_Dancer ||
+			@next_class == Job_Star_Gladiator || @next_class == Job_Soul_Linker){ //Segunda Classe / Mestre Taekwon / Espiritualista
+		return .@lv_r$[1];
+	}
+	else if(@next_class >= Job_Rune_Knight && @next_class <= Job_Guillotine_Cross || 
+			@next_class >= Job_Royal_Guard && @next_class <= Job_Shadow_Chaser){ //Terceira Classe
+		return .@lv_r$[2];
+	}
+	else if(@next_class >= Job_Lord_Knight && @next_class <= Job_Gypsy){ //Segunda Classe T.
+		return .@lv_r$[4];
+	}
+	else if(@next_class >= Job_Rune_Knight_T && @next_class <= Job_Guillotine_Cross_T || 
+			@next_class >= Job_Royal_Guard_T && @next_class <= Job_Shadow_Chaser_T){ //Terceira Classe T. / Oboro e Kangerou
+		return .@lv_r$[8];
+	}else if(@next_class == Job_Kagerou || @next_class == Job_Oboro || @next_class == Job_Gunslinger){
+		return .@lv_r$[5];
+	}
+	
+	return "";
+}
+
+function	script	F_CHECKLEVELREQ	{	
+	if(BaseLevel < atoi(getarg(0)) || JobLevel < atoi(getarg(1))) return 0;
+	
+	return 1;
+}

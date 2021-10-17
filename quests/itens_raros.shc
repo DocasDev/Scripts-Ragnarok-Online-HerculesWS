@@ -1,0 +1,347 @@
+/*
+ ================================================================
+                       Missões de Itens Raros
+ ================================================================
+ ----------------------------------------------------------------
+                               AUTOR
+                              QuodDG
+ ----------------------------------------------------------------
+                              VERSÕES
+                      1.0 Criação [QuodDG]
+ ----------------------------------------------------------------
+ CREATE TABLE `gt_itens_raros_quests` (
+	  `ID` int(11) NOT NULL,
+	  `item1Id` int(11) NOT NULL,
+	  `item1Qt` int(11) NOT NULL,
+      `item2Id` int(11) NOT NULL,
+	  `item2Qt` int(11) NOT NULL,
+      `item3Id` int(11) NOT NULL,
+	  `item3Qt` int(11) NOT NULL,
+      `mob1Id` int(11) NOT NULL,
+      `mob2Id` int(11) NOT NULL,
+      `mob3Id` int(11) NOT NULL,
+	  `recBXP` int(11) NOT NULL,
+	  `recJXP` int(11) NOT NULL,
+	  `recItemID` int(11) NOT NULL,
+	  `recItemQT` int(11) NOT NULL,
+	  PRIMARY KEY (`ID`)
+	) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+ ================================================================
+*/
+
+aru_gld,279,363,4	script	Explorador#10	4_M_CATMAN2,{
+	callfunc("F_QDO_Explorador", 61701, 90, 1);
+}
+
+cmd_fild03,382,166,4	script	Explorador#12	4_M_CATMAN2,{
+	callfunc("F_QDO_Explorador", 61702, 90, 1);
+}
+
+mid_campin,302,124,2	script	Explorador#13	4_M_CATMAN2,{
+	callfunc("F_QDO_Explorador", 61703, 100, 1);
+}
+
+ama_fild01,63,37,6	script	Explorador#15	4_M_CATMAN2,{
+	callfunc("F_QDO_Explorador", 61704, 100, 1);
+}
+
+lhz_dun04,240,57,6	script	Explorador#16	4_M_CATMAN2,{
+	callfunc("F_QDO_Explorador", 61705, 100, 1);
+}
+
+nif_fild01,325,267,4	script	Explorador#22	4_M_CATMAN2,{
+	callfunc("F_QDO_Explorador", 61706, 120, 0);
+}
+
+gef_fild11,253,360,4	script	Explorador#26	4_M_CATMAN2,{
+	callfunc("F_QDO_Explorador", 61707, 120, 1);
+}
+
+//<quest_id><min_level><uniq_recom>
+function	script	F_QDO_Explorador	{
+	.@quest_id = getarg(0);
+	.@uniq_recom = getarg(2);
+	//Verifica se o personagem tem nível suficiente
+	if(BaseLevel < getarg(1)){
+		emotion(e_scissors);
+		end;
+	}
+	//[0]ID		[1]item1Id	[2]item1Qt	[3]item2Id	[4]item2Qt	[5]item3Id		[6]item3Qt
+	//[7]mob1Id	[8]mob2Id	[9]mob3Id	[10]recBXP	[11]recJXP	[12]recItemID	[13]recItemQT
+	if(callfunc("F_QDO_Get_item_raro_quest_info", .@quest_id, .@quest_info) == 0){
+		end;
+	}
+	if(.@quest_info[1] > 0){
+		setarray(.@req_id[getarraysize(.@req_id)], .@quest_info[1]);
+		setarray(.@req_q[getarraysize(.@req_q)], .@quest_info[2]);
+		setarray(.@mob_id[getarraysize(.@mob_id)], .@quest_info[7]);
+	}
+	if(.@quest_info[3] > 0){
+		setarray(.@req_id[getarraysize(.@req_id)], .@quest_info[3]);
+		setarray(.@req_q[getarraysize(.@req_q)], .@quest_info[4]);
+		setarray(.@mob_id[getarraysize(.@mob_id)], .@quest_info[8]);
+	}
+	if(.@quest_info[5] > 0){
+		setarray(.@req_id[getarraysize(.@req_id)], .@quest_info[5]);
+		setarray(.@req_q[getarraysize(.@req_q)], .@quest_info[6]);
+		setarray(.@mob_id[getarraysize(.@mob_id)], .@quest_info[9]);
+	}
+	.@recom_id = .@quest_info[12];
+	.@recom_q = .@quest_info[13];
+	.@rec_bxp = .@quest_info[10];
+	.@rec_jxp = .@quest_info[11];
+	.@npcname$ = "^FF8B00[= Explorador =]^000000";
+	mes .@npcname$;
+	mes "Olá, ^0075E9" + strcharinfo(PC_NAME) + "^000000!";
+	if(questprogress(.@quest_id) == 2){
+		mes "Que bom vê-lo!";
+		mes "Obrigado novamente pela ajuda.";
+		close;
+	}
+	if(questprogress(.@quest_id) == 1){
+		mes "Você voltou! Já conseguiu?";
+		next;
+		if(select("Não.:Sim.") == 1){
+			mes .@npcname$;
+			mes "Não desanime. Hehe";
+			mes "Com certeza você vai conseguir encontrar!";
+			close;
+		}
+		for(.@i = 0; .@i < getarraysize(.@req_id); .@i++){
+			if(countitem(.@req_id[.@i]) < .@req_q[.@i]){
+				mes .@npcname$;
+				mes "Hmmm...";
+				mes "Acho que se enganou. Hehe";
+				close;
+			}
+		}
+		mes .@npcname$;
+		mes "Nossa!";
+		mes "É exatamente isso.";
+		mes "Você é incrível!!!";
+		next;
+		mes .@npcname$;
+		mes "Como prometido...";
+		if(.@recom_id >= 501){
+			for(.@i = 0; .@i < getarraysize(.@req_id); .@i++){
+				delitem(.@req_id[.@i], countitem(.@req_id[.@i]));
+			}
+			getitem(.@recom_id, .@recom_q);
+			mes "Aqui está " + .@recom_q + "x ^0075E9" + getitemname(.@recom_id) + "^000000";
+			next;
+		}
+		else{
+			callfunc("F_QDO_Get_recompense", .@quest_id, .@recompensa_info);
+			if(	.@uniq_recom == 1 || 
+				( .@uniq_recom == 0 && getarraysize(.@recompensa_info) > countitem(.@req_id[0]) )){
+				for(.@i = 0; .@i < getarraysize(.@recompensa_info); .@i++){
+					setarray(.@menu$[.@i], getitemname(.@recompensa_info[.@i]));
+				}
+				mes "Escolha sua recompensa:";
+				next;
+				.@selected = select(implode(.@menu$, ":")) - 1;
+				for(.@i = 0; .@i < getarraysize(.@req_id); .@i++){
+					delitem(.@req_id[.@i], countitem(.@req_id[.@i]));
+				}
+				getitem(.@recompensa_info[.@selected], .@recom_q);
+			}
+			else{
+				.@max_recom = getarraysize(.@recompensa_info) > countitem(.@req_id[0]) ? countitem(.@req_id[0]): getarraysize(.@recompensa_info);
+				delitem(.@req_id[0], countitem(.@req_id[0]));
+				mes "Essas são suas recompensas:";
+				for(.@i = 0; .@i < .@max_recom; .@i++){
+					getitem(.@recompensa_info[.@i], .@recom_q);
+					mes .@recom_q + "x ^0075E9" + getitemname(.@recompensa_info[.@i]) + "^000000";
+				}
+				mes "Aproveite!";
+				next;
+			}
+		}
+		if(.@rec_bxp > 0){
+			BaseExp += .@rec_bxp;
+		}
+		if(.@rec_jxp > 0){
+			JobExp += .@rec_jxp;
+		}
+		completequest(.@quest_id);
+		mes .@npcname$;
+		mes "Muito obrigado pela ajuda!";
+		mes "Se nos encontrarmos em outros Andares, talvez eu precise da sua ajuda novamente. Hehe";
+		close;
+	}
+	
+	mes "Eu estou fazendo uma viagem de exploração neste Andar da Torre em busca de:";
+	for(.@i = 0; .@i < getarraysize(.@req_id); .@i++){
+		mes "^0075E9" + getitemname(.@req_id[.@i]) + "^000000";
+	}
+	next;
+	mes .@npcname$;
+	mes "Minha habilidade como Guerreiro é muito ruim, então vai demorar muito para eu conseguir.";
+	mes "Você poderia me ajudar?";
+	next;
+	if(select("Depois.:Claro!") == 1){
+		mes .@npcname$;
+		mes "Entendo.";
+		mes "Quem sabe depois.";
+		close;
+	}
+	mes .@npcname$;
+	mes "Que bom!";
+	mes "Nesse caso, se me trouxer pelo menos:";
+	for(.@i = 0; .@i < getarraysize(.@req_id); .@i++){
+		mes .@req_q[.@i] + "x ^0075E9" + getitemname(.@req_id[.@i]) + "^000000";
+	}
+	next;
+	mes .@npcname$;
+	if(.@recom_id >= 501){
+		mes "Eu lhe darei como recompensa " + .@recom_q + "x ^0075E9" + getitemname(.@recom_id) + "^000000";
+	}
+	else{
+		callfunc("F_QDO_Get_recompense", .@quest_id, .@recompensa_info);
+		if(.@uniq_recom == 1){
+			mes "Eu lhe darei como recompensa um desses itens:";
+		}
+		else{
+			mes "Eu lhe darei como recompensa pelo menos um desses itens:";
+		}
+		for(.@i = 0; .@i < getarraysize(.@recompensa_info); .@i++){
+			mes .@recom_q + "x ^0075E9" + getitemname(.@recompensa_info[.@i]) + "^000000";
+		}
+		if(.@uniq_recom == 0){
+			next;
+			mes .@npcname$;
+			mes "^FF0000ATENÇÃO:^999999 Se coletar pelo menos " + getarraysize(.@recompensa_info) + "x " + getitemname(.@req_id[0]) + ", receberá todas as recompensas, caso contrário receberá apenas 1 das recompensas à sua escolha^000000";
+		}
+	}
+	next;
+	mes .@npcname$;
+	mes "Ah! Antes que eu esqueça...";
+	if(getarraysize(.@req_id) == 1){
+		mes "Neste Andar, o monstro que deixa cair o item que eu preciso é ^0075E9" + strmobinfo(2, .@mob_id[0]) + "^000000.";
+	}
+	else{
+		mes "Neste Andar, os monstros que deixam cair os itens que eu preciso são:";
+		for(.@i = 0; .@i < getarraysize(.@req_id); .@i++){
+			mes "^0075E9" + strmobinfo(2, .@mob_id[.@i]) + "^000000 (^0075E9" + getitemname(.@req_id[.@i]) + "^000000)";
+		}
+	}
+	next;
+	if(select("Desistir.:Aceitar Missão.") == 1){
+		mes .@npcname$;
+		mes "Que pena...";
+		mes "Acho que a recompensa lhe desanimou. Hehe";
+		mes "Infelizmente é o que posso lhe oferecer no momento.";
+		next;
+		mes .@npcname$;
+		mes "Quem sabe não nos encontramos em outro Andar...";
+		mes "Adeus!";
+		close;
+	}
+	mes .@npcname$;
+	mes "Estarei lhe aguardando.";
+	mes "Boa sorte!";
+	close2;
+	setquest(.@quest_id);
+	end;
+}
+
+//[0]ID		[1]item1Id	[2]item1Qt	[3]item2Id	[4]item2Qt	[5]item3Id		[6]item3Qt
+//[7]mob1Id	[8]mob2Id	[9]mob3Id	[10]recBXP	[11]recJXP	[12]recItemID	[13]recItemQT
+function	script	F_QDO_Get_item_raro_quest_info	{
+	.@quest_id = getarg(0);
+	.@sql$ = "SELECT ID,item1Id,item1Qt,item2Id,item2Qt,item3Id,item3Qt,mob1Id,mob2Id,mob3Id,recBXP,recJXP,recItemID,recItemQT FROM gt_itens_raros_quests where ID = " + .@quest_id + " LIMIT 0,1;";
+	.@nb = query_sql(.@sql$, .@id, .@item1Id, .@item1Qt, .@item2Id, .@item2Qt, .@item3Id, .@item3Qt, .@mob1Id, .@mob2Id, .@mob3Id, .@recBXP, .@recJXP, .@recItemID, .@recItemQT);
+	if(.@nb == 0){
+		return 0;
+	}
+	
+	setarray getelementofarray(getarg(1), 0), .@id[0];
+	setarray getelementofarray(getarg(1), 1), .@item1Id[0];
+	setarray getelementofarray(getarg(1), 2), .@item1Qt[0];
+	setarray getelementofarray(getarg(1), 3), .@item2Id[0];
+	setarray getelementofarray(getarg(1), 4), .@item2Qt[0];
+	setarray getelementofarray(getarg(1), 5), .@item3Id[0];
+	setarray getelementofarray(getarg(1), 6), .@item3Qt[0];
+	setarray getelementofarray(getarg(1), 7), .@mob1Id[0];
+	setarray getelementofarray(getarg(1), 8), .@mob2Id[0];
+	setarray getelementofarray(getarg(1), 9), .@mob3Id[0];
+	setarray getelementofarray(getarg(1), 10), .@recBXP[0];
+	setarray getelementofarray(getarg(1), 11), .@recJXP[0];
+	setarray getelementofarray(getarg(1), 12), .@recItemID[0];
+	setarray getelementofarray(getarg(1), 13), .@recItemQT[0];
+	
+	return 1;
+}
+
+function	script	F_QDO_Get_recompense	{
+	//Filtrado pelo ID da Quest
+	switch(getarg(0)){
+		case 61702:
+			set getelementofarray(getarg(1), 0), Magic_Reflector;
+			set getelementofarray(getarg(1), 1), Encyclopedia_Revision;
+			set getelementofarray(getarg(1), 2), Body_Power_Up_Ring;
+			set getelementofarray(getarg(1), 3), Ring_Of_Spell_Explosion;
+			set getelementofarray(getarg(1), 4), Anti_Magic_Suit;
+			set getelementofarray(getarg(1), 5), Geffen_Mage_Robe;
+			break;
+		case 61703:
+			set getelementofarray(getarg(1), 0), Tw_Sword_Of_Evil_Slayer;
+			set getelementofarray(getarg(1), 1), Dagger_Of_Evil_Slayer;
+			set getelementofarray(getarg(1), 2), Katar_Of_Evil_Slayer;
+			set getelementofarray(getarg(1), 3), Bow_Of_Evil_Slayer;
+			set getelementofarray(getarg(1), 4), Staff_Of_Evil_Slayer;
+			set getelementofarray(getarg(1), 5), Hammer_Of_Evil_Slayer;
+			set getelementofarray(getarg(1), 6), Old_Card_Album;
+			break;
+		case 61705:
+			set getelementofarray(getarg(1), 0), Riot_Chip;
+			set getelementofarray(getarg(1), 1), Broken_Chip_1;
+			set getelementofarray(getarg(1), 2), Broken_Chip_2;
+			break;
+		case 61706:
+			switch(Class){
+				case Job_Rune_Knight_T:
+				case Job_Royal_Guard_T:
+				case Job_Ranger_T:
+				case Job_Minstrel_T:
+				case Job_Wanderer_T:
+				case Job_Mechanic_T:
+				case Job_Genetic_T:
+				case Job_Guillotine_Cross_T:
+				case Job_Shadow_Chaser_T:
+					set getelementofarray(getarg(1), 0), Armor_Of_Gray;
+					break;
+				case Job_Warlock_T:
+				case Job_Sorcerer_T:
+				case Job_Arch_Bishop_T:
+				case Job_Sura:
+					set getelementofarray(getarg(1), 0), Gray_Robe;
+					break;
+			}
+			set getelementofarray(getarg(1), 1), Boots_Of_Gray;
+			set getelementofarray(getarg(1), 2), Cloak_Of_Gray;
+			set getelementofarray(getarg(1), 3), Gray_Helmet;
+			set getelementofarray(getarg(1), 4), Shield_Of_Gray;
+			break;
+		case 61707:
+			set getelementofarray(getarg(1), 0), Thanos_Axe;
+			set getelementofarray(getarg(1), 1), Thanos_Bow;
+			set getelementofarray(getarg(1), 2), Thanos_Dagger;
+			set getelementofarray(getarg(1), 3), Thanos_Great_Sword;
+			set getelementofarray(getarg(1), 4), Thanos_Hammer;
+			set getelementofarray(getarg(1), 5), Thanos_Katar;
+			set getelementofarray(getarg(1), 6), Thanos_Knuckle;
+			set getelementofarray(getarg(1), 7), Thanos_Long_Spear;
+			set getelementofarray(getarg(1), 8), Thanos_Spear;
+			set getelementofarray(getarg(1), 9), Thanos_Staff;
+			set getelementofarray(getarg(1), 10), Thanos_Sword;
+			set getelementofarray(getarg(1), 11), Thanos_Rod;
+			set getelementofarray(getarg(1), 12), Thanos_Violin;
+			set getelementofarray(getarg(1), 13), Thanos_Whip;
+			break;
+		default:
+			set getelementofarray(getarg(1), 0), 501;
+			break;
+	}
+	return;
+}

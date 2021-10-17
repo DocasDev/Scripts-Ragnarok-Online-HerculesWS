@@ -1,0 +1,343 @@
+/* ===============================================================
+                            Funções Globais
+   ================================================================
+   ----------------------------------------------------------------
+                            COMPATIBILIDADE
+							   Hercules
+   ----------------------------------------------------------------
+                                VERSÕES
+                        1.0 Criação [QuodDG]
+   ----------------------------------------------------------------
+ * ================================================================
+ */
+ 
+//<num><max>
+function	script	F_QDO_Float_perc	{
+	.@i = getarg(0);
+	.@j = getarg(1);
+	.@k = .@i * 100;
+	.@x = .@k / .@j;
+	.@y = ((.@k % .@j) * 100) / .@j;
+	return .@x + "," + .@y + "%";
+}
+
+//<num><div>
+function	script	F_QDO_Float_div	{
+	.@i = getarg(0);
+	.@j = getarg(1);
+	.@x = .@i / .@j;
+	.@y = ((.@i % .@j) * 100) / .@j;
+	return .@x + "," + .@y;
+}
+
+function	script	F_QDO_Get_Eden_weapons	{
+	.@nivel = getarg(0);
+	setarray .@weapons[0], 0;
+	switch(Class){
+		case Job_Novice:
+		case Job_Novice_High:
+		case Job_SuperNovice:
+		case Job_Super_Novice_E:
+			setarray .@weapons[0], 	P_Dagger1,	P_Dagger2,	P_Dagger3,
+									P_Mace1,	P_Mace2,	0,
+									P_Sabre1,	P_Sabre2,	0;
+			break;
+		case Job_Swordman:
+		case Job_Knight:
+		case Job_Crusader:
+		case Job_Swordman_High:
+		case Job_Lord_Knight:
+		case Job_Paladin:
+		case Job_Rune_Knight:
+		case Job_Rune_Knight_T:
+		case Job_Royal_Guard:
+		case Job_Royal_Guard_T:
+			setarray .@weapons[0], 	P_Dagger1,	P_Dagger2,	P_Dagger3,
+									P_Mace1,	P_Mace2,	P_Mace3,
+									P_Sabre1,	P_Sabre2,	P_Saber3,
+									P_Slayer1,	P_Slayer2,	P_Slayer3,
+									0,			0,			P_Sphere1,
+									0,			0,			P_Two_Handed_Axe1;
+			break;
+		case Job_Merchant:
+		case Job_Blacksmith:
+		case Job_Alchemist:
+		case Job_Merchant_High:
+		case Job_Whitesmith:
+		case Job_Creator:
+		case Job_Mechanic:
+		case Job_Mechanic_T:
+		case Job_Genetic:
+		case Job_Genetic_T:
+			setarray .@weapons[0], 	P_Mace1,	P_Mace2,	P_Mace3,
+									P_Sabre1,	P_Sabre2,	P_Saber3,
+									0,			0,			P_Two_Handed_Axe1;
+			break;
+		case Job_Thief:
+		case Job_Rogue:
+		case Job_Thief_High:
+		case Job_Stalker:
+		case Job_Shadow_Chaser:
+		case Job_Shadow_Chaser_T:
+			setarray .@weapons[0], 	P_Dagger1,	P_Dagger2,	P_Dagger3;
+			break;
+		case Job_Assassin:
+		case Job_Assassin_Cross:
+		case Job_Guillotine_Cross:
+		case Job_Guillotine_Cross_T:
+			setarray .@weapons[0], 	P_Dagger1,	P_Dagger2,	P_Dagger3,
+									P_Sabre1,	P_Sabre2,	P_Saber3,
+									0,			0,			P_Katar1;
+			break;
+		case Job_Acolyte:
+		case Job_Acolyte_High:
+			setarray .@weapons[0], 	P_Mace1,	P_Mace2,	P_Mace3,
+									P_Staff1,	P_Staff2,	P_Staff3;
+			break;
+		case Job_Priest:
+		case Job_High_Priest:
+		case Job_Arch_Bishop:
+		case Job_Arch_Bishop_T:
+			setarray .@weapons[0], 	P_Mace1,	P_Mace2,	P_Mace3,
+									P_Staff1,	P_Staff2,	P_Staff3,
+									0,			0,			P_Knuckle1,
+									0,			0,			P_Dic1;
+			break;
+		case Job_Monk:
+		case Job_Champion:
+		case Job_Sura:
+		case Job_Sura_T:
+			setarray .@weapons[0], 	P_Mace1,	P_Mace2,	P_Mace3,
+									P_Staff1,	P_Staff2,	P_Staff3,
+									0,			0,			P_Knuckle1;
+			break;
+		case Job_Mage:
+		case Job_Mage_High:
+		case Job_Wizard:
+		case Job_High_Wizard:
+		case Job_Warlock:
+		case Job_Warlock_T:
+			setarray .@weapons[0], 	P_Staff1,	P_Staff2,	P_Staff3;
+			break;
+		case Job_Sage:
+		case Job_Professor:
+		case Job_Sorcerer:
+		case Job_Sorcerer_T:
+			setarray .@weapons[0], 	P_Dagger1,	P_Dagger2,	P_Dagger3,
+									P_Staff1,	P_Staff2,	P_Staff3,
+									0,			0,			P_Dic1;
+			break;
+		case Job_Archer:
+		case Job_Archer_High:
+		case Job_Hunter:
+		case Job_Sniper:
+		case Job_Ranger:
+		case Job_Ranger_T:
+			setarray .@weapons[0], 	0,			P_Dagger2,	P_Dagger3,
+									P_Bow1,		P_Bow2,		P_Bow3;
+			break;
+		case Job_Bard:
+		case Job_Clown:
+		case Job_Minstrel:
+		case Job_Minstrel_T:
+			setarray .@weapons[0], 	P_Dagger1,	P_Dagger2,	P_Dagger3,
+									P_Bow1,		P_Bow2,		P_Bow3,
+									0,			0,			P_String_Inst1;
+			break;
+		case Job_Dancer:
+		case Job_Gypsy:
+		case Job_Wanderer:
+		case Job_Wanderer_T:
+			setarray .@weapons[0], 	P_Dagger1,	P_Dagger2,	P_Dagger3,
+									P_Bow1,		P_Bow2,		P_Bow3,
+									0,			0,			P_Tail1;
+			break;
+		case Job_Taekwon:
+		case Job_Star_Gladiator:
+			setarray .@weapons[0], 	0,			0,			P_Dic1;
+			break;
+		case Job_Soul_Linker:
+			setarray .@weapons[0], 	P_Dagger1,	P_Dagger2,	P_Dagger3,
+									P_Staff1,	P_Staff2,	0;
+			break;
+		case Job_Ninja:
+		case Job_Kagerou:
+		case Job_Oboro:
+			setarray .@weapons[0], 	P_Dagger1,	P_Dagger2,	P_Dagger3,
+									0,			0,			P_Huuma_Shuriken1;
+			break;
+		case Job_Gunslinger:
+		case Job_Rebellion:
+			setarray .@weapons[0], 	P_Revolver1,P_Revolver2,P_Revolver3;
+			break;
+		case Job_Summoner:
+			setarray .@weapons[0], 	Paradise_Foxtail_Staff_I,Paradise_Foxtail_Staff_II,Paradise_Foxtail_Staff_III;
+			break;
+	}
+	
+	.@j = 0;
+	for(.@i = 0; .@i < getarraysize(.@weapons); .@i++){
+		.@row = .@i / $@qdo_eden_weapons_columns;
+		.@column = (.@i % $@qdo_eden_weapons_columns) + 1;
+		if(.@weapons[.@i] > 0 && ( .@column == .@nivel )){
+			set getelementofarray(getarg(1), .@j), .@weapons[.@i];
+			.@j++;
+		}
+	}
+	return;
+}
+
+function	script	F_QDO_Anule_Mercant_Descount	{
+	//(100 * 150) / (100 - 24)
+	.@skill_value = getarg(1);
+	.@taxa = 24;
+	if(.@skill_value == 1){
+		switch(getskilllv(MC_DISCOUNT)){
+			case 1:
+				.@taxa = 7;
+				break;
+			case 2:
+				.@taxa = 9;
+				break;
+			case 3:
+				.@taxa = 11;
+				break;
+			case 4:
+				.@taxa = 13;
+				break;
+			case 5:
+				.@taxa = 15;
+				break;
+			case 6:
+				.@taxa = 17;
+				break;
+			case 7:
+				.@taxa = 19;
+				break;
+			case 8:
+				.@taxa = 21;
+				break;
+			case 9:
+				.@taxa = 23;
+				break;
+			case 10:
+				.@taxa = 24;
+				break;
+		}
+	}
+	return (100 * getarg(0)) / (100 - .@taxa) + 1;
+}
+
+function	script	F_QDO_IsMVP	{
+	.@boss_id = getarg(0);
+	.@mvp_list$ = 	"|1038|1039|1046|1059|1086"+
+					"|1087|1112|1115|1147|1150"+
+					"|1157|1159|1190|1251|1252"+
+					"|1272|1312|1373|1389|1399"+
+					"|1418|1492|1502|1511|1583"+
+					"|1623|1630|1646|1647|1648"+
+					"|1649|1650|1651|1658|1685"+
+					"|1688|1708|1719|1734|1751"+
+					"|1766|1767|1768|1779|1785"+
+					"|1813|1816|1817|1832|1871"+
+					"|1874|1876|1885|1917|1980"+
+					"|2022|2066|2068|2087|2094"+
+					"|2095|2096|2097|2098|2099"+
+					"|2100|2101|2102|2103|2104"+
+					"|2105|2106|2107|2108|2109"+
+					"|2110|2111|2112|2113|2131"+
+					"|2156|2165|2202|2235|2236"+
+					"|2237|2238|2239|2240|2241"+
+					"|2249|2251|2253|2255|2341"+
+					"|2362|2529|2533|2534|2535"+
+					"|2996|";
+	return compare(.@mvp_list$, "|"+.@boss_id+"|");
+}
+
+function	script	F_QDO_Get_Mobs_By_Level	{
+	.@max_level = 120;
+	.@base_level = getarg(0) > .@max_level ? .@max_level : getarg(0);
+	.@quant = getarg(1);
+	
+	.@sql$ = "SELECT " + 
+			"m.ID, " + 
+			"m.DropCardid " +
+			"FROM mob_db AS m " + 
+			"WHERE " + 
+				"!(`Mode`&0x00020) AND " + 
+				"m.`Mode` <> 0 AND " + 
+				"m.MEXP = 0 AND " + 
+				"m.EXP <> 0 AND " + 
+				"m.Sprite NOT LIKE 'EVENT_%' AND " + 
+				"m.kName NOT LIKE 'Elusive %' AND " + 
+				"m.kName NOT LIKE 'Swift %' AND " + 
+				"m.kName NOT LIKE 'Furious %' AND " + 
+				"m.kName NOT LIKE 'Solid %' AND " + 
+				"m.kName NOT LIKE '% Ringleader' AND " + 
+				"m.DropCardid <> 0 AND " + 
+				"m.LV <= " + .@base_level + " " + 
+			"GROUP BY m.DropCardid, m.ID " + 
+			"ORDER BY m.LV DESC " + 
+			"LIMIT 0," + .@quant + ";";
+	.@nb = query_sql(.@sql$, .@mId, .@DropCardid);
+	if(.@nb == 0){
+		return 0;
+	}
+	for(.@i = 0; .@i < getarraysize(.@mId); .@i++){
+		setarray getelementofarray(getarg(2), .@i), .@mId[.@i];
+	}
+	return .@nb;
+}
+
+function	script	F_QDO_Quest_Coins	{
+	.@npc_name$ = getarg(0);
+	.@quest_id = getarg(1);
+	.@recomp = getarg(2);
+	.@qty = getarg(3);
+	.@mob_1 = getarg(4);
+	.@qty_mob_1 = getarg(5);
+	.@mob_2 = getarg(6);
+	.@qty_mob_2 = getarg(7);
+	
+	if(questprogress(.@quest_id) == 2){
+		mes .@npc_name$;
+		mes "Você já completou esta missão.";
+		close;
+	}
+	else if(questprogress(.@quest_id) == 1){
+		if(questprogress(.@quest_id, HUNTING) < 2){
+			mes .@npc_name$;
+			mes "Você ainda não completou esta missão.";
+			close;
+		}
+		mes .@npc_name$;
+		mes "Missão completa!";
+		mes "Recompensa: " + .@qty + "x ^0075E9" + getitemname(.@recomp) + "^000000.";
+		close2;
+		getitem(.@recomp, .@qty);
+		erasequest(.@quest_id);
+		end;
+	}
+	mes .@npc_name$;
+	mes "Requerimentos da Missão";
+	mes "------------------------------";
+	mes "Derrotar: ";
+	if(.@mob_1 > 0){
+		mesf("%dx ^0075E9%s^000000", .@qty_mob_1, strmobinfo(2, .@mob_1));
+	}
+	if(.@mob_2 > 0){
+		mesf("%dx ^0075E9%s^000000", .@qty_mob_2, strmobinfo(2, .@mob_2));
+	}
+	mes "Aceitar a missão?";
+	next;
+	if(select("Não:Sim") == 1){
+		mes .@npc_name$;
+		mes "Missão rejeitada!";
+		close;
+	}
+	mes .@npc_name$;
+	mes "Missão aceita!";
+	close2;
+	setquest(.@quest_id);
+	end;
+}

@@ -1,0 +1,189 @@
+/*
+ ================================================================
+                  Premiador Andar + Máquina de Itens
+ ================================================================
+ ----------------------------------------------------------------
+                               AUTOR
+                              QuodDG
+ ----------------------------------------------------------------
+                              VERSÕES
+                      1.0 Criação [QuodDG]
+ ----------------------------------------------------------------
+ ================================================================
+*/
+
+//====================
+//== Premiador
+//====================
+
+-	script	TownGift#main	-1,{
+	.@npc_name$ = "^FF8B00[= Gerente da Torre =]^000000";
+	mes .@npc_name$;
+	mes "Olá, ^0075E9" + strcharinfo(PC_NAME) + "^000000.";
+	mes "A cada nível da torre que você subir, eu lhe darei uma quantidade de ^0075E9" + getitemname($@qdo_coin_town) + "^000000.";
+	next;
+	mes .@npc_name$;
+	mes "Essa moeda poderá ser usada para adquirir itens na ^0075E9Máquina de Itens^000000 ou na ^0075E9Loja da Torre^000000.";
+	next;
+	if(qdo_nivel_torre > qdo_gift_coin){
+		.@dif = qdo_nivel_torre - qdo_gift_coin;
+		.@qty = 0;
+		for(.@i = qdo_gift_coin; .@i < qdo_nivel_torre; .@i++){
+			.@gift = .@i < 40 ? .@i / 4 : 10;
+			.@qty += .@gift < 1 ? 1 : .@gift;
+		}
+		qdo_gift_coin = qdo_nivel_torre;
+		getitem($@qdo_coin_town, .@qty);
+		mes .@npc_name$;
+		mes "Muito bem!";
+		mes "Vejo que você subiu mais " + (.@dif > 1 ? "alguns Andares" : "um Andar") + ".";
+		mes "Aqui está sua recompensa. ";
+		mes .@qty + "x ^0075E9" + getitemname($@qdo_coin_town) + "^000000.";
+		next;
+	}
+	mes .@npc_name$;
+	mes "Volte quando tiver subido mais algum Andar.";
+	mes "Boa sorte!";
+	close;
+}
+
+gef_tower,56,156,2	duplicate(TownGift#main)	Premiador#0	4_M_MANAGER
+mid_campin,106,117,2	duplicate(TownGift#main)	Premiador#13	4_M_MANAGER
+malaya,284,362,6	duplicate(TownGift#main)	Premiador#31	4_M_MANAGER
+
+//====================
+//== Máquina de Itens
+//====================
+
+-	script	Máquina de Itens#main	-1,{
+	.npc_name$ = "^FF8B00[= Máquina de Itens =]^000000";
+	mes .npc_name$;
+	mes "Escolha uma opção:";
+	next;
+	if(select("Tentar a sorte:Ver itens") == 2){
+		callsub(S_Rates);
+	}
+	.@price = 5;
+	if(countitem($@qdo_coin_town) == 0){
+		callsub(S_NO_COIN);
+	}
+	mes .npc_name$;
+	mes "Quantas tentativas você quer fazer?";
+	next;
+	.@selected = select("1 tentativa:5 tentativas:10 tentativas");
+	switch(.@selected){
+		case 1:
+			.@tentativas = 1;
+			break;
+		case 2:
+			.@tentativas = 5;
+			break;
+		case 3:
+			.@tentativas = 10;
+			break;
+	}
+	.@total = .@tentativas * .@price;
+	if(countitem($@qdo_coin_town) < .@total){
+		callsub(S_NO_COIN);
+	}
+	mes .npc_name$;
+	mes "Você escolheu " + .@tentativas + " tentativa(s).";
+	mes "Isso irá custar " + .@total + "x ^0075E9" + getitemname($@qdo_coin_town) + "^000000.";
+	mes "Deseja continuar?";
+	next;
+	if(select("Não.:Sim.") == 1){
+		mes .npc_name$;
+		mes "Operação cancelada pelo usuário.";
+		close;
+	}
+	freeloop(1);
+	for(.@i = 0; .@i < .@tentativas; .@i++){
+		progressbar("0x0075E9", 1);
+		.@rate = rand(1, $@qdo_mach_max_rate);
+		for(.@j = 0; .@j < getarraysize($@qdo_mach_itens); .@j += $@qdo_mach_itens_columns){
+			if(.@rate <= $@qdo_mach_itens[.@j + 2]){
+				.@item_id = $@qdo_mach_itens[.@j];
+				.@qty = $@qdo_mach_itens[.@j + 1];
+				delitem($@qdo_coin_town, .@price);
+				getitem(.@item_id, .@qty);
+				break;
+			}
+		}
+	}
+	freeloop(0);
+	mes .npc_name$;
+	mes "Aproveite seus prêmios.";
+	close2;
+	end;
+	
+S_Rates:
+	mes .npc_name$;
+	mes "^FF0000As rates podem mudar quando a lista de itens for atualizada^000000";
+	mes "^AAAAAA----------------------------------^000000";
+	freeloop(1);
+	.@ant = 0;
+	for(.@i = 0; .@i < getarraysize($@qdo_mach_itens); .@i += $@qdo_mach_itens_columns){
+		.@real_rate$ = callfunc("F_QDO_Float_perc", ($@qdo_mach_itens[.@i + 2] - .@ant), $@qdo_mach_max_rate);
+		mes "^0075E9" + getitemname($@qdo_mach_itens[.@i]) + "^000000";
+		mes $@qdo_mach_itens[.@i + 1] + "x ^AAAAAA|^000000 " + .@real_rate$;
+		mes "^AAAAAA----------------------------------^000000";
+		.@ant = $@qdo_mach_itens[.@i + 2];
+	}
+	freeloop(0);
+	close2;
+	end;
+	
+S_NO_COIN:
+	mes .npc_name$;
+	mes "Você não tem ^0075E9" + getitemname($@qdo_coin_town) + "^000000 suficientes.";
+	mes "1 tentativa: 5x ^0075E9" + getitemname($@qdo_coin_town) + "^000000";
+	mes "5 tentativa: 25x ^0075E9" + getitemname($@qdo_coin_town) + "^000000";
+	mes "10 tentativa: 50x ^0075E9" + getitemname($@qdo_coin_town) + "^000000";
+	close;
+	end;
+}
+
+gef_tower,62,158,2	duplicate(Máquina de Itens#main)	Máquina de Itens#0	4_VENDING_MACHINE
+mid_campin,101,124,2	duplicate(Máquina de Itens#main)	Máquina de Itens#13	4_VENDING_MACHINE
+malaya,289,365,4,	duplicate(Máquina de Itens#main)	Máquina de Itens#31	4_VENDING_MACHINE
+
+//====================
+//== Catálogo
+//====================
+
+-	script	MM_Itemns	-1,{
+	end;
+	
+OnInit:
+	$@qdo_mach_itens_columns = 3;
+	setarray($@qdo_mach_itens[0],
+		//item					qty		rate [1% = 100]
+		Deviruchi_Egg,			1,		80,
+		Treasure_Box,			1,		1080,
+		Yellow_Raffle_Sap,		20,		1300,
+		Guarantee_Armor_11Up,	1,		80,
+		Gold,					2,		1080,
+		Guarantee_Weapon_11Up,	1,		80,
+		Silver_Coin_Moneybag,	5,		680,
+		Guarantee_Weapon_7Up,	1,		80,
+		Tower_Coin,				3,		680,
+		Token_Of_Siegfried,		1,		80,
+		Lucifers_Lament,		1,		340,
+		Guarantee_Armor_7Up,	1,		80,
+		Yggdrasilberry,			10,		1000,
+		Red_Raffle_Sap,			30,		1300,
+		Old_Card_Album,			1,		340,
+		White_Raffle_Sap,		10,		1300,
+		Bapho_Jr_Egg,			1,		80,
+		Black_Reagent,			1,		340
+	);
+	$@qdo_mach_max_rate = 0;
+	freeloop(1);
+	for(.@i = 0; .@i < getarraysize($@qdo_mach_itens); .@i += $@qdo_mach_itens_columns){
+		$@qdo_mach_max_rate += $@qdo_mach_itens[.@i + 2];
+		setarray($@qdo_mach_itens[.@i + 2], $@qdo_mach_max_rate);
+	}
+	freeloop(0);
+	//announce($@qdo_mach_max_rate + "", bc_all);
+	end;
+}

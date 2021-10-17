@@ -1,0 +1,955 @@
+/*
+ ================================================================
+                          Gerenciador TOWN
+ ================================================================
+ ----------------------------------------------------------------
+                               AUTOR
+                              QuodDG
+ ----------------------------------------------------------------
+                              VERSÕES
+                      1.0 Criação [QuodDG]
+ ----------------------------------------------------------------
+ Add in mob.c on 'mob_dead' function
+ pc->setparam(sd, SP_KILLEDRID, md->class_);
+ pc->setparam(mvp_sd, SP_KILLEDRID, md->class_);
+ ================================================================
+*/
+
+//========================
+//== Teleport
+//========================
+
+geffen,112,65,6	script	Teleporte da Torre#0	4_F_MAID,{
+	.@npc_name$ = "^FF8B00[= Teleporte da Torre =]^000000";
+	if(qdo_nivel_torre < 1){
+		qdo_nivel_torre = 1;
+	}
+	//Conversa
+	cutin("kafra_01", 2);
+	mes .@npc_name$;
+	mes "Olá, ^0075E9" + strcharinfo(PC_NAME) + "^000000!";
+	//Verifica se o Personagem tem Teleport Stone
+	//para evitar ficar preso em um Andar.
+	//Evita verificação para GMs e Moderadores
+	if(getgmlevel() <= 1 && countitem($@qdo_return_item) < 1){
+		getitem($@qdo_return_item, 1);
+	}
+	mes "Só posso lhe teleportar para um Andar em que você já estave antes.";
+	mes "Você já subiu até o ^0075E9Andar " + qdo_nivel_torre + "^000000.";
+	mes "O que deseja?";
+	next;
+	switch(select("Nada:Salvar Ponto de Retorno:Escolher um Andar:Ir para o ^0075E9Andar " + qdo_nivel_torre + "^000000")){
+		case 2:
+			callsub(S_SAVE, .@npc_name$);
+		case 3:
+			callsub(S_CHOOSE, .@npc_name$);
+		case 4:
+			callsub(S_JUMP, .@npc_name$);
+		default:
+			mes .@npc_name$;
+			mes "Ok. Se precisar de algo estarei aqui!";
+			close2;
+			cutin("kafra_01", 255);
+			end;
+	}
+	end;
+	
+S_SAVE:
+	//[0]AndarNum	[1]Mapa	[2]mapX	[3]maxY	[4]Boss	[5]Dungeon	[6]DungeonX	[7]DungeonY
+	if(callfunc("F_QDO_Get_Andar_Info", strnpcinfo(NPC_MAP), .@map_info$) == 1){
+		savepoint(.@map_info$[1], atoi(.@map_info$[2]), atoi(.@map_info$[3]));
+		mes getarg(0);
+		mes "Muito bem.";
+		mes "Seu Ponto de Retorno foi salvo para este Andar.";
+		close2;
+	}
+	else{
+		mes getarg(0);
+		mes "Sinto que há algo de errado neste mundo.";
+		mes "Não consigo salvar seu Ponto de Retorno.";
+		close2;
+	}
+	cutin("kafra_01", 255);
+	end;
+	
+S_CHOOSE:
+	mes getarg(0);
+	mes "Para qual ^0075E9Andar^000000 você deseja ir?";
+	next;
+	.@menu$ = "Eu volto depois";
+	for( .@i = 0; .@i <= qdo_nivel_torre; .@i++ ){
+		.@menu$ += ":^0075E9Andar " + .@i + "^000000";
+	}
+	.@selected = select(.@menu$) - 2;
+	if(.@selected == -1){
+		mes getarg(0);
+		mes "Tudo bem, ficarei aguardando...";
+		close2;
+		cutin("kafra_01", 255);
+		end;
+	}
+	//[0]AndarNum	[1]Mapa	[2]mapX	[3]maxY	[4]Boss	[5]Dungeon	[6]DungeonX	[7]DungeonY
+	if(callfunc("F_QDO_Get_Andar_Info", $@qdo_maps$[.@selected * $@qdo_maps_columns + 1], .@map_info$) == 0){
+		mes getarg(0);
+		mes "Devo ter confundido sua escolha.";
+		mes "Esse lugar não existe!";
+		close2;
+		cutin("kafra_01", 255);
+		end;
+	}
+	mes getarg(0);
+	mes "Muito bem, vou lhe enviar para o ^0075E9Andar " + .@map_info$[0] + "^000000.";
+	mes "Boa sorte Herói!";
+	close2;
+	cutin("kafra_01", 255);
+	warp(.@map_info$[1], atoi(.@map_info$[2]), atoi(.@map_info$[3]));
+	end;
+	
+S_JUMP:
+	//[0]AndarNum	[1]Mapa	[2]mapX	[3]maxY	[4]Boss	[5]Dungeon	[6]DungeonX	[7]DungeonY
+	if(callfunc("F_QDO_Get_Andar_Info", $@qdo_maps$[qdo_nivel_torre * $@qdo_maps_columns + 1], .@map_info$) == 0){
+		mes getarg(0);
+		mes "Devo ter confundido sua escolha.";
+		mes "Esse lugar não existe!";
+		close2;
+		cutin("kafra_01", 255);
+		end;
+	}
+	mes getarg(0);
+	mes "Muito bem, vou lhe enviar para o ^0075E9Andar " + .@map_info$[0] + "^000000.";
+	mes "Boa sorte Herói!";
+	close2;
+	cutin("kafra_01", 255);
+	warp(.@map_info$[1], atoi(.@map_info$[2]), atoi(.@map_info$[3]));
+	end;
+}
+
+mid_camp,222,245,4	duplicate(Teleporte da Torre#0)	Teleporte da Torre#13	4_F_MAID
+malaya,277,362,4	duplicate(Teleporte da Torre#0)	Teleporte da Torre#31	4_F_MAID
+
+//========================
+//== Entrada da Dungeon
+//========================
+
+-	script	Dungeon#main	-1,{
+	//[0]AndarNum	[1]Mapa	[2]mapX	[3]maxY	[4]Boss	[5]Dungeon	[6]DungeonX	[7]DungeonY
+	if(callfunc("F_QDO_Get_Andar_Info", strnpcinfo(NPC_MAP), .@map_info$) == 0){
+		specialeffect(EF_STASIS, SELF);
+		end;
+	}
+	if(select("Continuar aqui:Entrar na Dungeon") == 1){
+		close;
+	}
+	.@andar_num = atoi(.@map_info$[0]);
+	if(getgroupid() < 2 && qdo_nivel_torre < .@andar_num){
+		specialeffect(EF_STASIS, SELF);
+		warp("geffen", 120, 63);
+		close;
+	}
+	warp(.@map_info$[5], atoi(.@map_info$[6]), atoi(.@map_info$[7]));
+	end;
+}
+
+gef_fild01,57,62,0	duplicate(Dungeon#main)	Dungeon#1	PORTAL
+gef_fild08,185,171,0	duplicate(Dungeon#main)	Dungeon#2	PORTAL
+mjolnir_01,96,221,0	duplicate(Dungeon#main)	Dungeon#3	PORTAL
+gef_fild03,93,82,0	duplicate(Dungeon#main)	Dungeon#4	PORTAL
+gef_fild10,231,292,0	duplicate(Dungeon#main)	Dungeon#5	PORTAL
+mjolnir_11,242,193,0	duplicate(Dungeon#main)	Dungeon#6	PORTAL
+mjolnir_05,219,232,0	duplicate(Dungeon#main)	Dungeon#7	PORTAL
+moc_fild01,148,249,0	duplicate(Dungeon#main)	Dungeon#8	PORTAL
+pay_fild04,253,191,0	duplicate(Dungeon#main)	Dungeon#9	PORTAL
+aru_gld,289,163,0	duplicate(Dungeon#main)	Dungeon#10	PORTAL
+moc_fild11,198,216,0	duplicate(Dungeon#main)	Dungeon#11	PORTAL
+cmd_fild03,225,218,0	duplicate(Dungeon#main)	Dungeon#12	PORTAL
+//mid_camp,222,232,0	duplicate(Dungeon#main)	Dungeon#13	PORTAL
+ma_fild02,39,239,0	duplicate(Dungeon#main)	Dungeon#14	PORTAL
+ama_fild01,174,323,0	duplicate(Dungeon#main)	Dungeon#15	PORTAL
+pay_fild11,284,136,0	duplicate(Dungeon#main)	Dungeon#16	PORTAL
+rockrdg1,268,103,0	duplicate(Dungeon#main)	Dungeon#17	PORTAL
+tur_dun01,154,241,0	duplicate(Dungeon#main)	Dungeon#18	PORTAL
+um_fild03,314,331,0	duplicate(Dungeon#main)	Dungeon#19	PORTAL
+ra_fild08,281,359,0	duplicate(Dungeon#main)	Dungeon#20	PORTAL
+izlu2dun,107,83,0	duplicate(Dungeon#main)	Dungeon#21	PORTAL
+nif_fild01,225,260,0	duplicate(Dungeon#main)	Dungeon#22	PORTAL
+mjolnir_10,18,258,0	duplicate(Dungeon#main)	Dungeon#23	PORTAL
+ein_fild07,193,62,0	duplicate(Dungeon#main)	Dungeon#24	PORTAL
+gon_fild01,192,265,0	duplicate(Dungeon#main)	Dungeon#25	PORTAL
+gef_fild11,72,324,0	duplicate(Dungeon#main)	Dungeon#26	PORTAL
+um_fild01,149,291,0	duplicate(Dungeon#main)	Dungeon#27	PORTAL
+moc_fild17,89,159,0	duplicate(Dungeon#main)	Dungeon#28	PORTAL
+pay_fild05,86,89,0	duplicate(Dungeon#main)	Dungeon#29	PORTAL
+moc_fild19,107,99,0	duplicate(Dungeon#main)	Dungeon#30	PORTAL
+//malaya,304,354,0	duplicate(Dungeon#main)	Dungeon#31	PORTAL
+cmd_fild08,340,83,0	duplicate(Dungeon#main)	Dungeon#32	PORTAL
+hu_fild05,197,210,0	duplicate(Dungeon#main)	Dungeon#33	PORTAL
+ve_fild07,56,73,0	duplicate(Dungeon#main)	Dungeon#34	PORTAL
+
+//==========================
+//== map_zone and flags
+//==========================
+
+1@pop3	mapflag	zone	Memorial Dungeon
+
+//========================
+//== Boss Room Controll
+//========================
+
+1@pop3,54,60,0	script	#brcontroll	OBJ_B2,{
+	.@party_id = getcharid(CHAR_ID_PARTY);
+	if (getcharid(CHAR_ID_CHAR) != getpartyleader(.@party_id, 2)) {
+		specialeffect(EF_STASIS);
+		end;
+	}
+	'br_map$ = qdo_map_slug$;
+	qdo_map_slug$ = "";
+	//[0]AndarNum	[1]Mapa	[2]mapX	[3]maxY	[4]Boss	[5]Dungeon	[6]DungeonX	[7]DungeonY	
+	if(callfunc("F_QDO_Get_Andar_Info", 'br_map$, .@map_info$) == 0){
+		specialeffect(EF_STASIS);
+		end;
+	}
+	'num_andar = atoi(.@map_info$[0]);
+	'boss_id = atoi(.@map_info$[4]);
+	donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnDisable");
+	instance_announce(instance_id(), "O Chefe do Andar aparecerá em 5 segundos.", bc_npc);
+	sleep(5000);
+	donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnSummonBoss");
+	end;
+	
+OnInstanceInit:
+	end;
+	
+OnNormalMode:
+	'br_mode = 0;
+	end;
+	
+OnNightmareMode:
+	'br_mode = 2;
+	end;
+	
+OnSummonBoss:
+	monster(instance_mapname("1@pop3"), 54, 60, getmonsterinfo('boss_id, MOB_NAME), 'boss_id, 1, instance_npcname(strnpcinfo(NPC_NAME)) + "::OnBossDead", 'br_mode);
+	end;
+	
+OnBossDead:
+	//Chance de drop especial
+	if('br_mode > 1){
+		for(.@i = 0; .@i < getarraysize($@qdo_special_drop); .@i += 3){
+			.@rate = ('num_andar > 10 ? $@qdo_special_drop[.@i + 2] : ($@qdo_special_drop[.@i + 2] / 10)) + 'num_andar;
+			if(rand(1, 10000) <= .@rate){
+				if(	getiteminfo($@qdo_special_drop[.@i], ITEMINFO_TYPE) == IT_WEAPON || 
+					getiteminfo($@qdo_special_drop[.@i], ITEMINFO_TYPE) == IT_ARMOR){
+					getitem2($@qdo_special_drop[.@i], $@qdo_special_drop[.@i + 1], 0, 0, 0, 0, 0, 0, 0);
+				}
+				else{
+					getitem($@qdo_special_drop[.@i], $@qdo_special_drop[.@i + 1]);
+				}
+				instance_announce(instance_id(), "[ " + strcharinfo(PC_NAME) + " ] ganhou " + $@qdo_special_drop[.@i + 1] + "x [ " + getitemname($@qdo_special_drop[.@i]) + " ].", bc_npc);
+			}
+		}
+	}
+	sleep2(2000);
+	announce("[ " + strcharinfo(PC_NAME) + " ] derrotou [ " + getmonsterinfo('boss_id, MOB_NAME) + " ], o Chefe do Andar " + 'num_andar + ('br_mode > 1 ? ", no Modo Pesadelo." : "."), bc_all);
+	donpcevent(instance_npcname("#brportal") + "::OnEnable");
+	end;
+	
+OnDisable:
+	movenpc(instance_npcname(strnpcinfo(NPC_NAME)), 1, 1);
+	//disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+	
+OnEnable:
+	movenpc(instance_npcname(strnpcinfo(NPC_NAME)), 54, 60);
+	//enablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+}
+
+1@pop3,54,60,0	script	#brportal	PORTAL,{
+	.@npc_name$ = "^FF8B00[= Portal da Torre =]^000000";
+	//[0]AndarNum	[1]Mapa	[2]mapX	[3]maxY	[4]Boss	[5]Dungeon	[6]DungeonX	[7]DungeonY
+	if(callfunc("F_QDO_Get_Andar_Info", 'br_map$, .@map_info$) == 0){
+		specialeffect(EF_STASIS, SELF);
+		end;
+	}
+	mes .@npc_name$;
+	mes "Olá, ^0075E9" + strcharinfo(PC_NAME) + "^000000.";
+	mes "O que deseja fazer?";
+	next;
+	if(select("Continuar aqui:Subir") == 1){
+		close;
+	}
+	mes .@npc_name$;
+	//Calculando o próximo andar
+	.@andar_num = atoi(.@map_info$[0]);
+	if(qdo_nivel_torre < .@andar_num){
+		specialeffect(EF_STASIS, SELF);
+		mes "^FF0000Parece que você saltou alguns Andares.^000000";
+		mes "Você será enviad" + (Sex == SEX_MALE ? "o" : "a") + " para o Andar Inicial.";
+		close2;
+		warp("geffen", 120, 63);
+		end;
+	}
+	if(.@andar_num == $@qdo_ultimo_andar){
+		mes "Esse é o último Andar, até o momento.";
+		mes "Você será enviad" + (Sex == SEX_MALE ? "o" : "a") + " para o Andar Inicial.";
+		close2;
+		warp("geffen", 120, 63);
+		end;
+	}
+	mes "Você será enviad" + (Sex == SEX_MALE ? "o" : "a") + " para o próximo Andar.";
+	close2;
+	.@prox_andar_num = .@andar_num + 1;
+	.@next_map$ = "";
+	.@next_x = 0;
+	.@next_y = 0;
+	do{
+		.@prox_andar_index = .@prox_andar_num * $@qdo_maps_columns;
+		//[0]AndarNum	[1]Mapa	[2]mapX	[3]maxY	[4]Boss	[5]Dungeon	[6]DungeonX	[7]DungeonY
+		if(callfunc("F_QDO_Get_Andar_Info", $@qdo_maps$[.@prox_andar_index + 1], .@map_info$) == 0){
+			specialeffect(EF_STASIS, SELF);
+			end;
+		}
+		if(.@next_map$ == ""){
+			.@next_map$ = .@map_info$[1];
+			.@next_x = atoi(.@map_info$[2]);
+			.@next_y = atoi(.@map_info$[3]);
+		}
+		if(.@prox_andar_num == $@qdo_ultimo_andar){
+			break;
+		}
+		.@next_boss_id = atoi(.@map_info$[4]);
+		if(.@next_boss_id == 0){
+			.@prox_andar_num++;
+		}
+	}while(.@next_boss_id == 0);
+	
+	if(qdo_nivel_torre < .@prox_andar_num){
+		qdo_nivel_torre = .@prox_andar_num;
+	}
+	warp(.@next_map$, .@next_x, .@next_y);
+	if(getmapusers(instance_mapname("1@pop3")) <= 0){
+		instance_destroy(instance_id());
+	}
+	end;
+
+OnInstanceInit:
+OnDisable:
+	disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+	
+OnEnable:
+	enablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+}
+
+//========================
+//== Boss Room
+//========================
+
+-	script	Salão do Chefe#main	-1,{
+	//[0]AndarNum	[1]Mapa	[2]mapX	[3]maxY	[4]Boss	[5]Dungeon	[6]DungeonX	[7]DungeonY	
+	if(callfunc("F_QDO_Get_Andar_Info", strnpcinfo(NPC_MAP), .@map_info$) == 0){
+		specialeffect(EF_STASIS);
+		end;
+	}
+	.@andar_num = atoi(.@map_info$[0]);
+	.@boss_id = atoi(.@map_info$[4]);
+	.@npc_name$ = "^FF8B00[= Salão do Chefe =]^000000";
+	if(qdo_call_time > gettimetick(2)){
+		.@secondes = qdo_call_time - gettimetick(2);
+		.@minutes = .@secondes / 60 + 1;
+		mes .@npc_name$;
+		mes "Você enfrentou um Chefe recentemente.";
+		mes "Aguarde sua Força Espiritual se recuperar.";
+		mes "Tempo de recuperação:";
+		mes "[ ^FF0000" + (.@secondes <= 60 ? (.@secondes + "s") : (.@minutes + "m")) + "^000000 ]";
+		close;
+	}
+	if(qdo_nivel_torre < .@andar_num){
+		specialeffect(EF_STASIS, SELF);
+		sleep2(1000);
+		warp("geffen", 120, 63);
+		close;
+	}
+	mes .@npc_name$;
+	mes "Chefe do Andar: [ ^0075E9" + getmonsterinfo(.@boss_id, MOB_NAME) + "^000000 ]";
+	mes "Nível: [ ^0075E9" + getmonsterinfo(.@boss_id, MOB_LV) + "^000000 ]";
+	mes "Tipo: [ ^0075E9" + (getmonsterinfo(.@boss_id, MOB_MVPEXP) > 0 ? "Chefe" : "Sub-Chefe") + "^000000 ]";
+	mes "Tamanho: [ ^0075E9" + callfunc("F_QDO_Parse_Mob_Size_Name", getmonsterinfo(.@boss_id, MOB_SIZE)) + "^000000 ]";
+	mes "Raça: [ ^0075E9" + callfunc("F_QDO_Parse_Mob_Race_Name", getmonsterinfo(.@boss_id, MOB_RACE)) + "^000000 ]";
+	next;
+	if(select("Continuar aqui:Entrar") == 1){
+		mes .@npc_name$;
+		mes "O Portal continua fechado.";
+		close;
+	}
+	.@party_id = getcharid(CHAR_ID_PARTY);
+	if (!.@party_id) {
+		mes .@npc_name$;
+		mes "Você precisa estar em um Grupo de pelo menos 1 pessoas para poder entrar.";
+		close;
+	}
+	if(has_instance("1@pop3") == ""){
+		if (getcharid(CHAR_ID_CHAR) != getpartyleader(.@party_id, 2)) {
+			mes .@npc_name$;
+			mes "O Líder do seu Grupo ainda não criou a reserva.";
+			close;
+		}
+		getpartymember(.@party_id);
+		if($@partymembercount > 5){
+			mes .@npc_name$;
+			mes "O máximo de pessoas no seu Grupo deve ser 5.";
+			close;
+		}
+		mes .@npc_name$;
+		mes "O Portal será aberto.";
+		mes "Escolha o modo de batalha.";
+		next;
+		.@mode = select("Normal:Pesadelo") - 1;
+		.@instance = instance_create("Salão do Chefe (A" + .@andar_num + ")", .@party_id);
+		if (.@instance >= 0) {
+			if (instance_attachmap("1@pop3", .@instance) == "") {
+				mes .npc_name$;
+				mes "Houve um distúrbio na Força.";
+				mes "O Portal do Salão do Chefe não foi aberto.";
+				close2;
+				instance_destroy(.@instance);
+				end;
+			}
+			instance_set_timeout(900, 10, .@instance);
+			instance_init(.@instance);
+			if(.@mode == 0){
+				donpcevent(instance_npcname("#brcontroll", .@instance) + "::OnNormalMode");
+			}
+			else{
+				donpcevent(instance_npcname("#brcontroll", .@instance) + "::OnNightmareMode");
+			}
+		}
+		if(.@instance < 0 || has_instance("1@pop3") == ""){
+			mes .npc_name$;
+			mes "Houve um distúrbio na Força.";
+			mes "O Portal do Salão do Chefe não foi aberto.";
+			close;
+		}
+		qdo_map_slug$ = strcharinfo(PC_MAP);
+	}
+	mes .@npc_name$;
+	mes "O Portal foi aberto.";
+	close2;
+	if(getgroupid() < 2 && qdo_nivel_torre > .@andar_num){
+		//Tempo para poder acessar a
+		//sala do chefe novamente.
+		.@time = (.@andar_num < 60 ? (.@andar_num / 10 + 1) : 6) * (.@mode > 0 ? 1200 : 600);
+		qdo_call_time = gettimetick(2) + .@time;
+	}
+	warp("1@pop3", 66, 66);
+	end;
+	/*
+	//[0]allow	[1]boss_id	[2]killer_name$	[3]time_dead	[4]mode
+	callfunc("F_QDO_Get_Tumulo_info", strnpcinfo(NPC_NAME_HIDDEN), .@boss_room_info$);
+	.@allow = atoi(.@boss_room_info$[0]);
+	.@boss_id = atoi(.@boss_room_info$[1]);
+	.@npc_name$ = "[= ^FF0000" + strmobinfo(2, .@boss_id) + "^000000 =]";
+	if(.@allow == 0){
+		.@killer_name$ = .@boss_room_info$[2];
+		.@time_dead = atoi(.@boss_room_info$[3]);
+		.@secondes = gettimetick(2) - .@time_dead;
+		.@respawn_time_m = (600 - .@secondes) / 60;
+		mes .@npc_name$;
+		mes "Foi derrotado e selado por";
+		mes "[^FF0000" + .@killer_name$ + "^000000]";
+		mes "O Chefe poderá ser invocado novamente em " + (.@respawn_time_m == 0 ? 
+			"[^FF0000Alguns segundos^000000]" : 
+			"[^FF0000" + .@respawn_time_m + " minuto" + (.@respawn_time_m > 1 ? "s" : "") + "^000000]");
+		close;
+	}
+	if(qdo_soul < $@qdo_soul_cost_n){
+		mes .@npc_name$;
+		mes "Você não tem ^0075E9Força Espiritual^000000 suficiente para liberar o Selo.";
+		mes "Força Espiritual atual: [ ^0075E9" + qdo_soul + "^000000 ]";
+		close;
+	}
+	mes .@npc_name$;
+	mes "O Chefe deste Andar foi selado para manter a Paz. Libertá-lo poderá trazer caos e destruição a este Andar, mas derrotá-lo fará com que o Portal para o Próximo Andar seja aberto.";
+	next;
+	if(select("Não fazer nada.:^FF0000Liberar o Selo.^000000") == 1){
+		close;
+	}
+	mes .@npc_name$;
+	mes "Custo de liberação:";
+	mes "Modo Normal: [ ^FF0000" + $@qdo_soul_cost_n + "^000000 ]";
+	mes "Modo Pesadelo: [ ^FF0000" + $@qdo_soul_cost_p + "^000000 ]";
+	mes "---------------------------------";
+	mes "Força Espiritual atual: [ ^0075E9" + qdo_soul + "^000000 ]";
+	mes "Escolha o Modo de Liberação.";
+	next;
+	switch(select("Normal:^FF0000Pesadelo^000000")){
+		case 1:
+			.@soul = $@qdo_soul_cost_n;
+			.@mode = 0;
+			break;
+		case 2:
+			.@soul = $@qdo_soul_cost_p;
+			.@mode = 2;
+			break;
+	}
+	if(getgroupid() > 1){
+		qdo_soul = $@qdo_soul_qty;
+	}
+	if(qdo_soul < .@soul){
+		mes .@npc_name$;
+		mes "Você não tem ^0075E9Força Espiritual^000000 suficiente para liberar o selo nesse modo.";
+		mes "Custo: [ ^0075E9" + .@soul + "^000000 ]";
+		mes "Força Espiritual atual: [ ^0075E9" + qdo_soul + "^000000 ]";
+		close;
+	}
+	qdo_soul -= .@soul;
+	mes .@npc_name$;
+	mes "O Selo foi quebrado.";
+	mes "Força Espiritual atual: [^0075E9" + qdo_soul + "^000000]";
+	close2;
+	specialeffect(EF_SCREEN_QUAKE, AREA, strnpcinfo(NPC_NAME));
+	specialeffect(EF_SPELLBREAKER, AREA, strnpcinfo(NPC_NAME));
+	callfunc("F_QDO_Set_Tumulo_info", strnpcinfo(NPC_NAME_HIDDEN), 1, 0, .@boss_name$, 0, .@mode);
+	startnpctimer();
+	donpcevent(strnpcinfo(NPC_NAME) + "::OnDisable");
+	end;
+	*/
+/*
+OnInit:
+	if(strnpcinfo(NPC_NAME_HIDDEN) == "main") end;
+	donpcevent(strnpcinfo(NPC_NAME) + "::OnReset");
+	end;
+
+OnReset:
+	//[0]AndarNum	[1]Mapa	[2]mapX	[3]maxY	[4]Boss	[5]Dungeon	[6]DungeonX	[7]DungeonY	
+	if(callfunc("F_QDO_Get_Andar_Info", strnpcinfo(NPC_MAP), .@map_info$) == 1){
+		.@boss_id = atoi(.@map_info$[4]);
+	}
+	callfunc("F_QDO_Set_Tumulo_info", strnpcinfo(NPC_NAME_HIDDEN), 1, .@boss_id, "", 0, 1);
+	end;
+
+OnTimer500:
+	announce("O Salão do Chefe será libertado em 5 segundos.", bc_npc);
+	end;
+	
+OnTimer5000:
+	donpcevent(strnpcinfo(NPC_NAME) + "::OnBreakSeal");
+	donpcevent(strnpcinfo(NPC_NAME) + "::OnStopTimer");
+	end;
+
+OnStopTimer:
+	stopnpctimer();
+	setnpctimer(0);
+	end;
+
+OnHour00:
+	if(mobcount(strnpcinfo(NPC_MAP), "TownManager::OnBossDead") > 0 && getmapusers(strnpcinfo(NPC_MAP)) == 0){
+		donpcevent(strnpcinfo(NPC_NAME) + "::OnKillBoss");
+		donpcevent(strnpcinfo(NPC_NAME) + "::OnReset");
+		donpcevent(strnpcinfo(NPC_NAME) + "::OnEnable");
+	}
+	end;
+
+OnBreakSeal:
+	//[0]AndarNum	[1]Mapa	[2]mapX	[3]maxY	[4]Boss	[5]Dungeon	[6]DungeonX	[7]DungeonY
+	if(	mobcount(strnpcinfo(NPC_MAP), "TownManager::OnBossDead") > 0 || 
+		callfunc("F_QDO_Get_Andar_Info", strnpcinfo(NPC_MAP), .@map_info$) == 0){
+		end;
+	}
+	//[0]allow	[1]boss_id	[2]killer_name$	[3]time_dead	[4]mode
+	callfunc("F_QDO_Get_Tumulo_info", strnpcinfo(NPC_NAME_HIDDEN), .@boss_room_info$);
+	.@boss_id = atoi(.@map_info$[4]);
+	.@boss_name$ = strmobinfo(2, .@boss_id);
+	getmapxy(.@map$, .@x, .@y, UNITTYPE_NPC, strnpcinfo(NPC_NAME));
+	monster(.@map$, .@x, .@y, .@boss_name$, .@boss_id, 1, "TownManager::OnBossDead", atoi(.@boss_room_info$[4]));
+	announce("O Selo que aprisionava o Salão do Chefe " + .@map_info$[0] + " foi quebrado.", bc_all);
+	end;
+
+OnKillBoss:
+	killmonster(strnpcinfo(NPC_MAP), "TownManager::OnBossDead");
+	end;
+*/
+OnDisable:
+	disablenpc(strnpcinfo(NPC_NAME));
+	end;
+	
+OnEnable:
+	enablenpc(strnpcinfo(NPC_NAME));
+	end;
+}
+
+gef_dun01,188,95,4	duplicate(Salão do Chefe#main)	Salão do Chefe#1	PORTAL
+gef_dun02,199,86,4	duplicate(Salão do Chefe#main)	Salão do Chefe#2	PORTAL
+gef_dun03,120,105,4	duplicate(Salão do Chefe#main)	Salão do Chefe#3	PORTAL
+anthell01,253,32,4	duplicate(Salão do Chefe#main)	Salão do Chefe#4	PORTAL
+anthell02,172,169,4	duplicate(Salão do Chefe#main)	Salão do Chefe#5	PORTAL
+beach_dun,88,36,4	duplicate(Salão do Chefe#main)	Salão do Chefe#6	PORTAL
+beach_dun2,254,244,4	duplicate(Salão do Chefe#main)	Salão do Chefe#7	PORTAL
+beach_dun3,282,57,4	duplicate(Salão do Chefe#main)	Salão do Chefe#8	PORTAL
+abyss_01,25,24,4	duplicate(Salão do Chefe#main)	Salão do Chefe#9	PORTAL
+abyss_02,145,280,4	duplicate(Salão do Chefe#main)	Salão do Chefe#10	PORTAL
+abyss_03,90,171,4	duplicate(Salão do Chefe#main)	Salão do Chefe#11	PORTAL
+ama_dun02,196,123,4	duplicate(Salão do Chefe#main)	Salão do Chefe#12	PORTAL
+//mid_camp,222,232,4	duplicate(Salão do Chefe#main)	Salão do Chefe#13	PORTAL
+ama_dun03,120,176,4	duplicate(Salão do Chefe#main)	Salão do Chefe#14	PORTAL
+bossnia_01,120,105,4	duplicate(Salão do Chefe#main)	Salão do Chefe#15	PORTAL
+bossnia_02,120,105,4	duplicate(Salão do Chefe#main)	Salão do Chefe#16	PORTAL
+bossnia_03,120,105,4	duplicate(Salão do Chefe#main)	Salão do Chefe#17	PORTAL
+bossnia_04,120,105,4	duplicate(Salão do Chefe#main)	Salão do Chefe#18	PORTAL
+bra_dun01,199,35,4	duplicate(Salão do Chefe#main)	Salão do Chefe#19	PORTAL
+bra_dun02,44,18,4	duplicate(Salão do Chefe#main)	Salão do Chefe#20	PORTAL
+iz_dun00,352,334,4	duplicate(Salão do Chefe#main)	Salão do Chefe#21	PORTAL
+iz_dun01,117,160,4	duplicate(Salão do Chefe#main)	Salão do Chefe#22	PORTAL
+iz_dun02,340,327,4	duplicate(Salão do Chefe#main)	Salão do Chefe#23	PORTAL
+lasa_dun01,158,98,4	duplicate(Salão do Chefe#main)	Salão do Chefe#24	PORTAL
+lasa_dun02,146,58,4	duplicate(Salão do Chefe#main)	Salão do Chefe#25	PORTAL
+lasa_dun03,162,158,4	duplicate(Salão do Chefe#main)	Salão do Chefe#26	PORTAL
+ein_dun01,262,260,4	duplicate(Salão do Chefe#main)	Salão do Chefe#27	PORTAL
+ein_dun02,31,28,4	duplicate(Salão do Chefe#main)	Salão do Chefe#28	PORTAL
+gon_dun01,153,231,4	duplicate(Salão do Chefe#main)	Salão do Chefe#29	PORTAL
+gon_dun03,187,246,4	duplicate(Salão do Chefe#main)	Salão do Chefe#30	PORTAL
+//malaya,280,290,4	duplicate(Salão do Chefe#main)	Salão do Chefe#31	PORTAL
+orcsdun01,183,8,4	duplicate(Salão do Chefe#main)	Salão do Chefe#32	PORTAL
+orcsdun02,180,15,4	duplicate(Salão do Chefe#main)	Salão do Chefe#33	PORTAL
+pay_dun00,184,33,4	duplicate(Salão do Chefe#main)	Salão do Chefe#34	PORTAL
+
+//========================
+//== Portals
+//========================
+/*
+-	script	Portal da Torre#main	-1,{
+	//[0]AndarNum	[1]Mapa	[2]mapX	[3]maxY	[4]Boss	[5]Dungeon	[6]DungeonX	[7]DungeonY
+	if(callfunc("F_QDO_Get_Andar_Info", strnpcinfo(NPC_MAP), .@map_info$) == 0){
+		specialeffect(EF_STASIS, SELF);
+		end;
+	}
+	if(select("Continuar aqui:Subir") == 1){
+		close;
+	}
+	//.@npc_name$ = "^FF8B00[= " + strnpcinfo(NPC_NAME_VISIBLE) + " " + .@map_info$[0] + " =]^000000";
+	.@prox_andar_num = atoi(.@map_info$[0]) + 1;
+	.@prox_andar_index = .@prox_andar_num * $@qdo_maps_columns;
+	if(qdo_nivel_torre < .@prox_andar_num - 1){
+		specialeffect(EF_STASIS, SELF);
+		warp("geffen", 120, 63);
+		close;
+	}
+	if(qdo_nivel_torre < .@prox_andar_num){
+		qdo_nivel_torre = .@prox_andar_num;
+	}
+	if(callfunc("F_QDO_Get_Andar_Info", $@qdo_maps$[.@prox_andar_index + 1], .@map_info$) == 0){
+		specialeffect(EF_STASIS, SELF);
+		close;
+	}
+	warp(.@map_info$[1], atoi(.@map_info$[2]), atoi(.@map_info$[3]));
+	end;
+
+OnInit:
+	if(	strnpcinfo(NPC_NAME_HIDDEN) == "main") end;
+	.portalcount++;
+	.portalid[.portalcount] = getnpcid(strnpcinfo(NPC_NAME));
+	if(callfunc("F_QDO_Get_Andar_Info", strnpcinfo(NPC_MAP), .@map_info$) == 1){
+		.@ultimo_andar = (atoi(.@map_info$[0]) * $@qdo_maps_columns) == (getarraysize($@qdo_maps$) - $@qdo_maps_columns);
+		if(!.@ultimo_andar && atoi(.@map_info$[4]) == 0)
+			end;
+	}
+OnDisable:
+	disablenpc(strnpcinfo(NPC_NAME));
+	end;
+	
+OnEnable:
+	enablenpc(strnpcinfo(NPC_NAME));
+	donpcevent(strnpcinfo(NPC_NAME) + "::OnTimerRespawn");
+	end;
+
+OnTimerRespawn:
+	startnpctimer();
+	end;
+	
+//15000 = 15 segundos
+OnTimer15000:
+	donpcevent("Salão do Chefe#" + strnpcinfo(NPC_NAME_HIDDEN) + "::OnEnable");
+	donpcevent(strnpcinfo(NPC_NAME) + "::OnDisable");
+	end;
+	
+//600000 = 10 minutos
+OnTimer600000:
+	stopnpctimer();
+	setnpctimer(0);
+	donpcevent("Salão do Chefe#" + strnpcinfo(NPC_NAME_HIDDEN) + "::OnReset");
+	end;
+}
+
+gef_dun01,188,95,0	duplicate(Portal da Torre#main)	Portal da Torre#1	PORTAL
+gef_dun02,199,86,0	duplicate(Portal da Torre#main)	Portal da Torre#2	PORTAL
+gef_dun03,120,105,0	duplicate(Portal da Torre#main)	Portal da Torre#3	PORTAL
+anthell01,253,32,0	duplicate(Portal da Torre#main)	Portal da Torre#4	PORTAL
+anthell02,172,169,0	duplicate(Portal da Torre#main)	Portal da Torre#5	PORTAL
+beach_dun,88,36,0	duplicate(Portal da Torre#main)	Portal da Torre#6	PORTAL
+beach_dun2,254,244,0	duplicate(Portal da Torre#main)	Portal da Torre#7	PORTAL
+beach_dun3,286,57,0	duplicate(Portal da Torre#main)	Portal da Torre#8	PORTAL
+abyss_01,25,24,0	duplicate(Portal da Torre#main)	Portal da Torre#9	PORTAL
+abyss_02,145,280,0	duplicate(Portal da Torre#main)	Portal da Torre#10	PORTAL
+abyss_03,90,171,0	duplicate(Portal da Torre#main)	Portal da Torre#11	PORTAL
+ama_dun02,196,123,0	duplicate(Portal da Torre#main)	Portal da Torre#12	PORTAL
+mid_camp,222,232,0	duplicate(Portal da Torre#main)	Portal da Torre#13	PORTAL
+ama_dun03,120,176,0	duplicate(Portal da Torre#main)	Portal da Torre#14	PORTAL
+bossnia_01,120,105,0	duplicate(Portal da Torre#main)	Portal da Torre#15	PORTAL
+bossnia_02,120,105,0	duplicate(Portal da Torre#main)	Portal da Torre#16	PORTAL
+bossnia_03,120,105,0	duplicate(Portal da Torre#main)	Portal da Torre#17	PORTAL
+bossnia_04,120,105,0	duplicate(Portal da Torre#main)	Portal da Torre#18	PORTAL
+bra_dun01,199,35,0	duplicate(Portal da Torre#main)	Portal da Torre#19	PORTAL
+bra_dun02,44,18,0	duplicate(Portal da Torre#main)	Portal da Torre#20	PORTAL
+iz_dun00,352,334,0	duplicate(Portal da Torre#main)	Portal da Torre#21	PORTAL
+iz_dun01,117,160,0	duplicate(Portal da Torre#main)	Portal da Torre#22	PORTAL
+iz_dun02,340,327,0	duplicate(Portal da Torre#main)	Portal da Torre#23	PORTAL
+lasa_dun01,155,98,0	duplicate(Portal da Torre#main)	Portal da Torre#24	PORTAL
+lasa_dun02,146,58,0	duplicate(Portal da Torre#main)	Portal da Torre#25	PORTAL
+lasa_dun03,162,158,0	duplicate(Portal da Torre#main)	Portal da Torre#26	PORTAL
+ein_dun01,262,260,0	duplicate(Portal da Torre#main)	Portal da Torre#27	PORTAL
+ein_dun02,31,28,0	duplicate(Portal da Torre#main)	Portal da Torre#28	PORTAL
+gon_dun01,153,231,0	duplicate(Portal da Torre#main)	Portal da Torre#29	PORTAL
+gon_dun03,187,246,0	duplicate(Portal da Torre#main)	Portal da Torre#30	PORTAL
+malaya,280,290,0	duplicate(Portal da Torre#main)	Portal da Torre#31	PORTAL
+orcsdun01,183,8,0	duplicate(Portal da Torre#main)	Portal da Torre#32	PORTAL
+orcsdun02,180,15,0	duplicate(Portal da Torre#main)	Portal da Torre#33	PORTAL
+pay_dun00,184,33,0	duplicate(Portal da Torre#main)	Portal da Torre#34	PORTAL
+*/
+//========================
+//== Manager
+//========================
+
+-	script	TownManager	-1,{
+	end;
+
+OnInit:
+	//Item de retorno para o Templo
+	$@qdo_return_item = 30501;
+	
+	//Moeda de evento oficial da torre
+	$@qdo_coin_town = Tower_Coin;
+	
+	//Quantidade de Força Espiritual por dia
+	$@qdo_soul_qty = 100;
+	
+	//Configuração de custo de Força Espiritual
+	$@qdo_soul_cost_n = 20;
+	$@qdo_soul_cost_p = 50;
+	
+	//Configuração dos Mapas
+	$@qdo_maps_columns = 8;
+	setarray($@qdo_maps$[0],
+	//[0]		[1]				[2]		[3]		[4]					[5]				[6]			[7]
+	//Nome		Mapa			mapX	maxY	Boss				Dungeon			DungeonX	DungeonY
+	"Andar 0",	"geffen",		120,	63,		0,					"",				0,			0,
+	"Andar 1",	"gef_fild01",	366,	137,	TOAD,				"gef_dun01",	114,		233,
+	"Andar 2",	"gef_fild08",	360,	189,	ECLIPSE,			"gef_dun02",	106,		129,
+	"Andar 3",	"mjolnir_01",	379,	256,	MASTERING,			"gef_dun03",	198,		197,
+	"Andar 4",	"gef_fild03",	378,	279,	DRAGON_FLY,			"anthell01",	38,			259,
+	"Andar 5",	"gef_fild10",	369,	56,		DEVILING,			"anthell02",	36,			260,
+	"Andar 6",	"mjolnir_11",	24,		221,	ANGELING,			"beach_dun",	270,		67,
+	"Andar 7",	"mjolnir_05",	32,		171,	CAT_O_NINE_TAIL,	"beach_dun2",	154,		21,
+	"Andar 8",	"moc_fild01",	27,		242,	VAGABOND_WOLF,		"beach_dun3",	20,			265,
+	"Andar 9",	"pay_fild04",	27,		166,	DARK_PRIEST,		"abyss_01",		260,		269,
+	"Andar 10",	"aru_gld",		203,	344,	GALION,				"abyss_02",		273,		270,
+	"Andar 11",	"moc_fild11",	212,	34,		GHOSTRING,			"abyss_03",		116,		28,
+	"Andar 12",	"cmd_fild03",	29,		69,		ARCHANGELING,		"ama_dun02",	35,			45,
+	"Andar 13",	"mid_camp",		217,	242,	0,					"",				0,			0,
+	"Andar 14",	"ma_fild02",	315,	317,	CHIMERA,			"ama_dun03",	120,		18,
+	"Andar 15",	"ama_fild01",	70,		37,		OWL_DUKE,			"bossnia_01",	198,		197,
+	"Andar 16",	"pay_fild11",	42,		320,	MD_OCTOPUS,			"bossnia_02",	198,		197,
+	"Andar 17",	"rockrdg1",		38,		248,	OWL_BARON,			"bossnia_03",	198,		197,
+	"Andar 18",	"tur_dun01",	162,	32,		EXECUTIONER,		"bossnia_04",	198,		197,
+	"Andar 19",	"um_fild03",	113,	56,		MUTANT_DRAGON,		"bra_dun01",	50,			202,
+	"Andar 20",	"ra_fild08",	163,	35,		WILD_RIDER,			"bra_dun02",	261,		259,
+	"Andar 21",	"izlu2dun",		108,	29,		DARK_ILLUSION,		"iz_dun00",		168,		163,
+	"Andar 22",	"nif_fild01",	314,	76,		KING_DRAMOH,		"iz_dun01",		253,		251,
+	"Andar 23",	"mjolnir_10",	372,	215,	TIRFING,			"iz_dun02",		236,		203,
+	"Andar 24",	"ein_fild07",	148,	357,	RETRIBUTION,		"lasa_dun01",	24,			143,
+	"Andar 25",	"gon_fild01",	278,	94,		SHELTER,			"lasa_dun02",	23,			171,
+	"Andar 26",	"gef_fild11",	367,	293,	GRYPHON,			"lasa_dun03",	190,		20,
+	"Andar 27",	"um_fild01",	363,	279,	SOLACE,				"ein_dun01",	22,			17,
+	"Andar 28",	"moc_fild17",	369,	272,	MAYA_PUPLE,			"ein_dun02",	286,		286,
+	"Andar 29",	"pay_fild05",	257,	285,	SKEGGIOLD,			"gon_dun01",	153,		48,
+	"Andar 30",	"moc_fild19",	167,	108,	OBSERVATION,		"gon_dun03",	68,			10,
+	"Andar 31",	"malaya",		280,	328,	0,					"",				0,			0,
+	"Andar 32",	"cmd_fild08",	25,		170,	MYSTELTAINN,		"orcsdun01",	32,			166,
+	"Andar 33",	"hu_fild05",	33,		198,	HYDRO,				"orcsdun02",	21,			181,
+	"Andar 34",	"ve_fild07",	147,	371,	MAYA,				"pay_dun00",	21,			181
+	//"Andar 35",	"",		108,	29,		KASA
+	//"Andar 36",	"",		108,	29,		ORK_HERO
+	//"Andar 37",	"",		108,	29,		NECROMANCER
+	//"Andar 38",	"",		108,	29,		MD_GIANT_OCTOPUS
+	//"Andar 39",	"",		108,	29,		GEMINI
+	//"Andar 40",	"",		108,	29,		0
+	//"Andar 41",	"",		108,	29,		0
+	);
+	
+	//Configura o último andar disponível
+	$@qdo_ultimo_andar = 34;
+	
+	//Rate: [1% = 100]
+	setarray($@qdo_special_drop[0],
+		//Item						Qty		Rate
+		Black_Reagent,				1,		100,
+		Token_Of_Siegfried,			1,		100,
+		Tower_Coin,					5,		100,
+		Scarlet_Bible,				1,		10,
+		Scarlet_Bow,				1,		10,
+		Scarlet_Dagger,				1,		10,
+		Scarlet_Huuma,				1,		10,
+		Scarlet_Katar,				1,		10,
+		Scarlet_Knuckle,			1,		10,
+		Scarlet_Lance,				1,		10,
+		Scarlet_Mace,				1,		10,
+		Scarlet_Rod,				1,		10,
+		Scarlet_Revolver,			1,		10,
+		Scarlet_Saber,				1,		10,
+		Scarlet_Spear,				1,		10,
+		Scarlet_Twohand_Axe,		1,		10,
+		Scarlet_Staff,				1,		10,
+		Scarlet_Twohand_Sword,		1,		10,
+		Scarlet_Viollin,			1,		10,
+		Scarlet_Wire,				1,		10
+	);
+	
+	announce("Gerenciador da Torre iniciado!", bc_all);
+	end;
+/*
+OnBossDead:
+	//[0]AndarNum	[1]Mapa	[2]mapX	[3]maxY	[4]Boss	[5]Dungeon	[6]DungeonX	[7]DungeonY
+	if(callfunc("F_QDO_Get_Andar_Info", strcharinfo(PC_MAP), .@map_info$) == 0){
+		end;
+	}
+	//Número do andar
+	.@andar_num = atoi(.@map_info$[0]);
+	//Modo de invocação [Normal|Pesadelo]
+	callfunc("F_QDO_Get_Tumulo_info", .@andar_num, .@boss_room_info$);
+	.@mode = atoi(.@boss_room_info$[4]);
+	//Anuncio
+	.@announce$ = "[" + strcharinfo(PC_NAME) + "] derrotou [" + strmobinfo(2, killedrid) + "], o Salão do Chefe " + .@andar_num + ".";
+	.@portal$ = "Portal da Torre#" + .@andar_num;
+	//Verifica se é o último Andar
+	if((.@andar_num + 1) * $@qdo_maps_columns < getarraysize($@qdo_maps$)){
+		.@announce$ += " O Portal ficará aberto por alguns segundos.";
+		donpcevent(.@portal$ + "::OnEnable");
+	}else{
+		donpcevent(.@portal$ + "::OnTimerRespawn");
+	}
+	//Grava as novas informações para o túmulo
+	callfunc("F_QDO_Set_Tumulo_info", .@andar_num, 0, killedrid, strcharinfo(PC_NAME), gettimetick(2), 1);
+	//Anuncia para todos
+	announce(.@announce$, bc_all);
+	//Chance de drop especial
+	if(.@mode > 1){
+		for(.@i = 0; .@i < getarraysize($@qdo_special_drop); .@i += 3){
+			.@rate = $@qdo_special_drop[.@i + 2] / (.@andar_num <= 10 ? 10 : 1);
+			if(rand(1, 10000) <= .@rate){
+				if(	getiteminfo($@qdo_special_drop[.@i], ITEMINFO_TYPE) == IT_WEAPON || 
+					getiteminfo($@qdo_special_drop[.@i], ITEMINFO_TYPE) == IT_ARMOR){
+					getitem2($@qdo_special_drop[.@i], $@qdo_special_drop[.@i + 1], 0, 0, 0, 0, 0, 0, 0);
+				}
+				else{
+					getitem($@qdo_special_drop[.@i], $@qdo_special_drop[.@i + 1]);
+				}
+			}
+		}
+	}
+	end;
+
+OnPCLoginEvent:
+	if(gettime(GETTIME_DAYOFYEAR) != qdo_soul_day){
+		qdo_soul_day = gettime(GETTIME_DAYOFYEAR);
+		qdo_soul += $@qdo_soul_qty - qdo_soul + (Upper > 0 ? 50 : 0);
+	}
+	dispbottom("Você tem " + qdo_soul + " de Força Espiritual", 0xFFFFFF);
+	end;
+*/
+}
+
+//========================
+//== Functions
+//========================
+
+//<andar_num><monumento_info$>
+//[0]allow	[1]boss_id	[2]killer_name$	[3]time_dead	[4]mode
+function	script	F_QDO_Get_Tumulo_info	{
+	set getelementofarray(getarg(1), 0), getd("$@allow_" + getarg(0));
+	set getelementofarray(getarg(1), 1), getd("$@boss_id_" + getarg(0));
+	set getelementofarray(getarg(1), 2), getd("$@killer_name_" + getarg(0) + "$");
+	set getelementofarray(getarg(1), 3), getd("$@time_dead_" + getarg(0));
+	set getelementofarray(getarg(1), 4), getd("$@mode_" + getarg(0));
+	return;
+}
+
+//<andar_num><allow><boss_id><killer_name$><time_dead><mode>
+function	script	F_QDO_Set_Tumulo_info	{
+	setd("$@allow_" + getarg(0), getarg(1));
+	setd("$@boss_id_" + getarg(0), getarg(2));
+	setd("$@killer_name_" + getarg(0) + "$", getarg(3));
+	setd("$@time_dead_" + getarg(0), getarg(4));
+	setd("$@mode_" + getarg(0), getarg(5));
+	return;
+}
+
+//<map_name><map_info$>
+//[0]AndarNum	[1]Mapa	[2]mapX	[3]maxY	[4]Boss	[5]Dungeon	[6]DungeonX	[7]DungeonY
+function	script	F_QDO_Get_Andar_Info	{
+	for(.@i = 0; .@i < getarraysize($@qdo_maps$); .@i += $@qdo_maps_columns){
+		//Busca pelo mapa principal ou pela Dungeon
+		if($@qdo_maps$[.@i + 1] == getarg(0) || $@qdo_maps$[.@i + 5] == getarg(0)){
+			.@andar_num = .@i / $@qdo_maps_columns;
+			set getelementofarray(getarg(1), 0), .@andar_num;
+			set getelementofarray(getarg(1), 1), $@qdo_maps$[.@i + 1];
+			set getelementofarray(getarg(1), 2), $@qdo_maps$[.@i + 2];
+			set getelementofarray(getarg(1), 3), $@qdo_maps$[.@i + 3];
+			set getelementofarray(getarg(1), 4), $@qdo_maps$[.@i + 4];
+			set getelementofarray(getarg(1), 5), $@qdo_maps$[.@i + 5];
+			set getelementofarray(getarg(1), 6), $@qdo_maps$[.@i + 6];
+			set getelementofarray(getarg(1), 7), $@qdo_maps$[.@i + 7];
+			return 1;
+		}
+	}
+	return 0;
+}
+
+//<size_num>
+function	script	F_QDO_Parse_Mob_Size_Name	{
+	switch(getarg(0)){
+		case Size_Small:
+			return "Pequeno";
+		case Size_Medium:
+			return "Médio";
+		case Size_Large:
+			return "Grande";
+	}
+	return "-?-?-?-";
+}
+
+//<race_num>
+function	script	F_QDO_Parse_Mob_Race_Name	{
+	switch(getarg(0)){
+		case RC_Formless:
+			return "Sem forma";
+		case RC_Undead:
+			return "Morto-vivo";
+		case RC_Brute:
+			return "Bruto";
+		case RC_Plant:
+			return "Planta";
+		case RC_Insect:
+			return "Inseto";
+		case RC_Fish:
+			return "Peixe";
+		case RC_Demon:
+			return "Demônio";
+		case RC_DemiHuman:
+			return "Humanóide";
+		case RC_Angel:
+			return "Anjo";
+		case RC_Dragon:
+			return "Dragão";
+	}
+	return "-?-?-?-";
+}

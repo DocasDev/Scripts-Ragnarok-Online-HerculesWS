@@ -1,0 +1,994 @@
+/*
+ ================================================================
+                       Instância: O Impostor
+ ================================================================
+ ----------------------------------------------------------------
+                               AUTOR
+                              QuodDG
+ ----------------------------------------------------------------
+                              VERSÕES
+                       1.0 Criação [QuodDG]
+ ----------------------------------------------------------------
+ ================================================================
+*/
+
+//======================
+//== Iniciador
+//======================
+
+gef_tower,52,104,4	script	Rubert#spai	4_M_RUSKING,{
+	.@npc_name$ = "^FF8B00[= Rubert =]^000000";
+	if(BaseLevel < 90){
+		mes .@npc_name$;
+		mes "Desculpe, mas embora eu precise muito de ajuda, você não é forte o suficiente para me ajudar.";
+		close;
+	}
+	if (questprogress(61805)) {
+		if(questprogress(61805, PLAYTIME) == 1){
+			mes .@npc_name$;
+			mes "Infelizmente a Fenda Dimensional se fechou, mas você poderá tentar novamente quando estiver aberta.";
+			close;
+		}
+		erasequest(61805);
+	}
+	mes .@npc_name$;
+	mes "Olá!";
+	mes "Ainda bem que encontrei um Herói nessa Dimensão.";
+	mes "Eu sou um viajante Dimensional, meu nome é ^0075E9Rubert^000000";
+	next;
+	mes .@npc_name$;
+	mes "Você parece ser forte!";
+	mes "Poderia me ajudar?";
+	next;
+	if(select("Estou ocupado.:Claro!") == 1){
+		mes .@npc_name$;
+		mes "Tudo bem!";
+		mes "Quem sabe em outra hora, ou talvez eu possa encontrar outra pessoa.";
+		close;
+	}
+	mes .@npc_name$;
+	mes "Em primieiro lugar...";
+	mes "Qual o seu nome?";
+	next;
+	select(strcharinfo(PC_NAME));
+	mes .@npc_name$;
+	mes "É um prazer te conhecer ^0075E9" + strcharinfo(PC_NAME) + "^000000!";
+	mes "Eu venho de outra dimensão e estou procurando ajuda para livrar meu castelo de um impostor que usurpou o meu trono.";
+	next;
+	mes .@npc_name$;
+	mes "Mas para isso será necessário derrotar todo o seu exército e eu não consigo fazer isso sozinho.";
+	next;
+	mes .@npc_name$;
+	mes "Eu posso lhe enviar para lá, mas meu dispositivo dimensional só pode transportar uma pessoa por vez, então você terá que ir sozinho.";
+	next;
+	if(select("Preciso me preparar:Estou pronto") == 1){
+		mes .@npc_name$;
+		mes "Tudo bem, posso esperar!";
+		close;
+	}
+	.@party_id = getcharid(CHAR_ID_PARTY);
+	if (!.@party_id) {
+		mes .@npc_name$;
+		mes "Você não está em um Grupo. Dessa forma meu dispositivo não irá funcionar.";
+		close;
+	}
+	if (getcharid(CHAR_ID_CHAR) != getpartyleader(.@party_id, 2)) {
+		mes .@npc_name$;
+		mes "Eu agradeço muito a ajuda, mas terei que pedir para falar com o Líder do seu Grupo.";
+		close;
+	}
+	.@instance = instance_create("O Impostor", .@party_id);
+	if (.@instance >= 0) {
+		if (instance_attachmap("1@spa", .@instance) == "") {
+			mes .@npc_name$;
+			mes "Meu dispositivo está com mau funcionamento...";
+			mes "Talvez esteja sobrecarregado.";
+			mes "Vamos tentar de novo em alguns minutos.";
+			close2;
+			instance_destroy(.@instance);
+			end;
+		}
+		instance_set_timeout(3600, 10, .@instance);
+		instance_init(.@instance);
+	}
+	if(.@instance < 0 || has_instance("1@spa") == ""){
+		mes .@npc_name$;
+		mes "Meu dispositivo está com mau funcionamento...";
+		mes "Talvez esteja sobrecarregado.";
+		mes "Vamos tentar de novo em alguns minutos.";
+		close;
+	}
+	mes .@npc_name$;
+	mes "Muito bem, tudo está pronto.";
+	mes "Boa sorte ^0075E9" + strcharinfo(PC_NAME) + "^000000!";
+	close2;
+	setquest(61805);
+	warp("1@spa", 42, 206);
+	end;
+}
+
+//======================
+//== map_zone and flags
+//======================
+
+1@spa	mapflag	zone	Memorial Dungeon 2
+
+//======================
+//== Warps
+//======================
+
+1@spa,42,174,0	script	#spa_w1	WARPNPC,1,1,{
+	switch(atoi(substr(strnpcinfo(NPC_NAME_HIDDEN), 5, 5))){
+		case 1:
+			warp(instance_mapname("1@spa"), 115, 122);
+			break;
+		case 2:
+			warp(instance_mapname("1@spa"), 58, 45);
+			break;
+		case 3:
+			warp(instance_mapname("1@spa"), 115, 122);
+			break;
+		case 4:
+			warp(instance_mapname("1@spa"), 42, 177);
+			break;
+		case 5:
+			warp("geffen", 120, 63);
+			break;
+	}
+	end;
+
+OnInstanceInit:
+OnDisable:
+	disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+	
+OnEnable:
+	enablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+}
+
+1@spa,117,120,0	duplicate(#spa_w1)	#spa_w2	WARPNPC,1,1
+1@spa,53,29,0	duplicate(#spa_w1)	#spa_w3	WARPNPC,1,1
+1@spa,119,142,0	duplicate(#spa_w1)	#spa_w4	WARPNPC,1,1
+//1@spa,42,206,0	duplicate(#spa_w1)	#spa_w5	WARPNPC,1,1
+
+//======================
+//== Controlador
+//======================
+
+1@spa,1,1,1	script	#spacontrol1	HIDDEN_NPC,{
+	end;
+
+OnInstanceInit:
+	'spa_step = 0;
+	'spa_heroi_name$ = "";
+	'spa_questions = 0;
+	'question_spa_p1 = 0;
+	'question_spa_p2 = 0;
+	'question_spa_s1 = 0;
+	'question_spa_s2 = 0;
+	'spa_box_step = 0;
+	'spa_box_true = rand(1, 10);
+	'spa_boss = 0;
+	'spa_open_vbox = 0;
+	'spa_mode = 0;
+	'spa_weak_type = 0;
+	end;
+	
+OnStep01:
+	'spa_step = 1;
+	//consolemes(CONSOLEMES_DEBUG, 'spa_step);
+	end;
+	
+OnStep02:
+	'spa_step = 2;
+	donpcevent(instance_npcname("#spa_w1") + "::OnEnable");
+	//consolemes(CONSOLEMES_DEBUG, 'spa_step);
+	end;
+
+OnStep03:
+	'spa_step = 3;
+	//consolemes(CONSOLEMES_DEBUG, 'spa_step);
+	end;
+
+OnStep04:
+	'spa_step = 4;
+	//consolemes(CONSOLEMES_DEBUG, 'spa_step);
+	end;
+	
+OnStep05:
+	'spa_step = 5;
+	//consolemes(CONSOLEMES_DEBUG, 'spa_step);
+	end;
+	
+OnStep06:
+	'spa_step = 6;
+	donpcevent(instance_npcname("#spa_w1") + "::OnDisable");
+	donpcevent(instance_npcname("#spa_w2") + "::OnEnable");
+	//consolemes(CONSOLEMES_DEBUG, 'spa_step);
+	end;
+	
+OnStep07:
+	'spa_step = 7;
+	//consolemes(CONSOLEMES_DEBUG, 'spa_step);
+	end;
+	
+OnStep08:
+	'spa_step = 8;
+	donpcevent(instance_npcname("#spa_w2") + "::OnDisable");
+	donpcevent(instance_npcname("#spa_w3") + "::OnEnable");
+	//consolemes(CONSOLEMES_DEBUG, 'spa_step);
+	end;
+	
+OnStep09:
+	'spa_step = 9;
+	donpcevent(instance_npcname("#spa_w3") + "::OnDisable");
+	//consolemes(CONSOLEMES_DEBUG, 'spa_step);
+	end;
+	
+OnStep10:
+	'spa_step = 10;
+	donpcevent(instance_npcname("#spa_w4") + "::OnEnable");
+	//consolemes(CONSOLEMES_DEBUG, 'spa_step);
+	end;
+	
+OnStep11:
+	'spa_step = 11;
+	donpcevent(instance_npcname("#spa_w4") + "::OnDisable");
+	instance_announce(instance_id(), "[Impostor]: Porque eu sou MURTRED, O IMORTAL!", bc_npc);
+	donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnSummonGuard");
+	//consolemes(CONSOLEMES_DEBUG, 'spa_step);
+	end;
+	
+OnStep12:
+	'spa_step = 12;
+	instance_announce(instance_id(), "[Murtred]: Isso não ficará assim, eu voltarei...", bc_npc);
+	sleep(1000);
+	donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnEnd");
+	//consolemes(CONSOLEMES_DEBUG, 'spa_step);
+	end;
+	
+OnEnd:
+	movenpc(instance_npcname("Marisa#spa_p5"), 44, 218, 4);
+	sleep(500);
+	movenpc(instance_npcname("Marta#spa_p1"), 37, 218, 6);
+	sleep(500);
+	movenpc(instance_npcname("Edmundo#spa_p2"), 35, 217, 6);
+	sleep(500);
+	movenpc(instance_npcname("Eduardo#spa_p3"), 47, 217, 4);
+	sleep(500);
+	movenpc(instance_npcname("Rute#spa_p4"), 49, 216, 4);
+	sleep(500);
+	donpcevent(instance_npcname("Rubert#spav") + "::OnEnable");
+	//consolemes(CONSOLEMES_DEBUG, "END");
+	end;
+	
+OnTimer30000:
+	if('spa_mode == 1){
+		setnpctimer(59500);
+	}
+	end;
+	
+OnTimer60000:
+	if(mobcount(instance_mapname("1@spa"), instance_npcname(strnpcinfo(NPC_NAME)) + "::OnBossDead") == 0){
+		stopnpctimer();
+		end;
+	}
+	setnpctimer(0);
+	donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnUpdateStatsBoss");
+	end;
+	
+OnSummonBoss:
+	'spa_boss = monster(instance_mapname("1@spa"), 41, 217, "Murtred", G_SEYREN_, 1, instance_npcname(strnpcinfo(NPC_NAME)) + "::OnBossDead");
+	.@max_hp = 'spa_mode == 1 ?  400000 : 200000;
+	.@atk_min = 'spa_mode == 1 ?  800 : 700;
+	if('spa_weak_type == 1){
+		.@def = 'spa_mode == 1 ?  100 : 50;
+		.@mdef = 'spa_mode == 1 ?  40 : 20;
+	}
+	else{
+		.@def = 'spa_mode == 1 ?  40 : 20;
+		.@mdef = 'spa_mode == 1 ?  100 : 50;
+	}
+	.@hit = 'spa_mode == 1 ?  1000 : 500;
+	.@flee = 'spa_mode == 1 ?  200 : 100;
+	setunitdata('spa_boss, UDT_LEVEL, 100);
+	setunitdata('spa_boss, UDT_MAXHP, .@max_hp);
+	setunitdata('spa_boss, UDT_HP, .@max_hp);
+	setunitdata('spa_boss, UDT_ATKMIN, .@atk_min);
+	setunitdata('spa_boss, UDT_ATKMAX, 1000);
+	setunitdata('spa_boss, UDT_DEF, .@def);
+	setunitdata('spa_boss, UDT_MDEF, .@mdef);
+	setunitdata('spa_boss, UDT_HIT, .@hit);
+	setunitdata('spa_boss, UDT_FLEE, .@flee);
+	setunitdata('spa_boss, UDT_ADELAY, 400);
+	setunitdata('spa_boss, UDT_AMOTION, 800);
+	setunitdata('spa_boss, UDT_DMOTION, 300);
+	initnpctimer();
+	end;
+
+OnUpdateStatsBoss:
+	.@atk_min = getunitdata('spa_boss, UDT_ATKMIN);
+	.@atk_max = getunitdata('spa_boss, UDT_ATKMAX);
+	.@max_hp = getunitdata('spa_boss, UDT_MAXHP);
+	.@hp = getunitdata('spa_boss, UDT_HP) + (.@max_hp * 10 / 100);
+	if(.@hp > .@max_hp){
+		.@hp = .@max_hp;
+	}
+	setunitdata('spa_boss, UDT_ATKMIN, .@atk_min + 25);
+	setunitdata('spa_boss, UDT_ATKMAX, .@atk_max + 50);
+	specialeffect(EF_MAXPOWER, AREA, 'spa_boss);
+	setunitdata('spa_boss, UDT_HP, .@hp);
+	specialeffect(EF_HEAL, AREA, 'spa_boss);
+	instance_announce(instance_id(), "[Murtred]: Eu fico mais forte para você cair! Hahaha", bc_npc);
+	end;
+	
+OnSummonGuard:
+	monster(instance_mapname("1@spa"), 36, 214, "Soldado", PAYONSOLDIER, 1, instance_npcname("#spacontrol1") + "::OnMobDead");
+	monster(instance_mapname("1@spa"), 47, 214, "Soldado", PAYONSOLDIER2, 1, instance_npcname("#spacontrol1") + "::OnMobDead");
+	end;
+	
+OnMobDead:
+	if(mobcount(instance_mapname("1@spa"), instance_npcname(strnpcinfo(NPC_NAME)) + "::OnMobDead") > 0){
+		end;
+	}
+	if('spa_step == 1 && 'spa_questions >= 3){
+		donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnStep02");
+	}
+	else if('spa_step == 4){
+		donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnStep05");
+	}
+	else if('spa_step == 6 && 'spa_open_vbox == 1){
+		donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnStep07");
+	}
+	else if('spa_step == 11){
+		donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnSummonBoss");
+	}
+	end;
+	
+OnBossDead:
+	setpcblock(PCBLOCK_MOVE, 1);
+	warp(instance_mapname("1@spa"), 41, 213);
+	donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnStep12");
+	end;
+}
+
+//======================
+//== NPCs
+//======================
+
+1@spa,41,217,4	script	Rubert#spaf	1_M_PRON_KING,{
+	.@npc_name$ = "^FF8B00[= Rubert =]^000000";
+	if('spa_step == 0){
+		mes .@npc_name$;
+		mes "Quem é você?";
+		mes "Como entrou aqui?";
+		next;
+		select("Sou um viajante dimensional");
+		select("Meu nome é " + strcharinfo(PC_NAME));
+		'spa_heroi_name$ = strcharinfo(PC_NAME);
+		mes .@npc_name$;
+		mes "^0075E9" + strcharinfo(PC_NAME) + "^000000!?";
+		mes "Indepente do seu nome...";
+		mes "O que faz em meu reino e principalemente, no Salão Real?";
+		next;
+		select("Rubert me pediu ajuda");
+		mes .@npc_name$;
+		mes "Rubert? Mas eu sou o Rei Rubert...";
+		emotion(e_what);
+		next;
+		if(select("Acreditar:Você pode provar?") == 2){
+			mes .@npc_name$;
+			mes "Mas que absurdo!";
+			mes "Qualquer um nesse reino ou castelo poderá comprovar minha identidade.";
+			emotion(e_an);
+			next;
+			mes .@npc_name$;
+			mes "Irei pedir agora mesmo que meus cientistas preparem a sua volta para casa.";
+			close2;
+			'spa_mode = 1;
+		}
+		else{
+			mes .@npc_name$;
+			mes "Acredito que você foi vítima de algum desordeiro.";
+			mes "De qualquer forma, é melhor você voltar para sua dimensão.";
+			mes "Irei pedir, agora mesmo, que meus cientistas preparem a sua volta para casa.";
+			emotion(e_heh);
+			close2;
+		}
+		donpcevent(instance_npcname("#spacontrol1") + "::OnStep01");
+		end;
+	}
+	else if('spa_step == 1){
+		mes .@npc_name$;
+		mes "Fique à vontade enquanto meus cientistas preparam a sua volta para casa.";
+		close;
+	}
+	else if('spa_step == 2){
+		mes .@npc_name$;
+		mes "O que!?";
+		mes "Assassinos em meu castelo?";
+		mes "Isso é impossível!";
+		emotion(e_heh);
+		close;
+	}
+	else if('spa_step <= 9){
+		mes .@npc_name$;
+		mes "Sua viagem para casa está quase pronta.";
+		close;
+	}
+	else if('spa_step == 10){	
+		mes .@npc_name$;
+		mes "Muito bem, está pronto para ir para casa?";
+		next;
+		select("Você é um impostor");
+		mes .@npc_name$;
+		mes "Quem você pensa que é?!";
+		mes "Até agora lhe tratei bem, mas você não me deixa outra opção.";
+		emotion(e_an);
+		next;
+		mes .@npc_name$;
+		mes "Meus guardas irão dar um jeito em você.";
+		next;
+		select("Que guardas?");
+		mes .@npc_name$;
+		mes "Não é possível...";
+		mes "Um ser insignificante como você não teria poder para derrotar todos os guardas do castelo.";
+		emotion(e_what);
+		next;
+		mes .@npc_name$;
+		mes "^CCCCCC**sussurra**^000000";
+		mes "Aquele impertinente do ^0075E9Rubert^000000.";
+		mes "Pensei que meus guardas tinham dado conta dele...";
+		next;
+		select("Mas você não é o Rubert?");
+		mes .@npc_name$;
+		mes "..";
+		mes "...";
+		mes "....";
+		emotion(e_omg);
+		next;
+		mes .@npc_name$;
+		mes "Você gosta de bancar " + (Sex == 1 ? "o" : "a") + " espert" + (Sex == 1 ? "o" : "a") + ", não é!?";
+		next;
+		mes .@npc_name$;
+		mes "Então não me deixa escolha...";
+		mes "Irei eliminar você agora mesmo!";
+		next;
+		mes .@npc_name$;
+		mes "Você não sabe com quem está se metendo!";
+		next;
+		select("Eu irei lhe derrotar");
+		mes .@npc_name$;
+		mes "Hmmm...";
+		mes "Pelo menos você tem coragem.";
+		emotion(e_heh);
+		next;
+		mes .@npc_name$;
+		mes "Mas você cometeu um erro...";
+		close2;
+		donpcevent(instance_npcname("#spacontrol1") + "::OnStep11");
+		donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnDisable");
+		end;
+	}
+	
+OnDisable:
+	disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+	
+OnEnable:
+	enablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+}
+
+1@spa,23,180,4	script	Marta#spa_p1	4_F_ACOLYTE,{
+	.@npc_name$ = "^FF8B00[= " + strnpcinfo(NPC_NAME_VISIBLE) + " =]^000000";
+	if('spa_step == 0){
+		mes .@npc_name$;
+		mes "Olá visitante.";
+		mes "O rei sabe que você está perambulando pelo castelo?";
+		close;
+	}
+	else if('spa_step == 1){
+		if(getd("'question_" + strnpcinfo(NPC_NAME_HIDDEN)) == 0){
+			mes .@npc_name$;
+			mes "Usurpador?";
+			mes "Que história é essa?";
+			next;
+			select("Então ele é realmente o rei?");
+			mes .@npc_name$;
+			mes "É...";
+			mes "...É claro que sim!";
+			emotion(e_swt2);
+			close2;
+			'spa_questions++;
+			setd("'question_" + strnpcinfo(NPC_NAME_HIDDEN), 1);
+			if('spa_step == 1 && 'spa_questions >= 3){
+				donpcevent(instance_npcname("#spacontrol1") + "::OnStep02");
+			}
+			end;
+		}
+		else{
+			mes .@npc_name$;
+			mes "Agradeço pela preocupação, mas...";
+			mes "^CCCCCC**sussurra**^000000";
+			mes "...é melhor você não ficar fazendo muitas perguntas ou poderá correr perigo.";
+			emotion(e_swt2);
+			close;
+		}
+	}
+	else if('spa_step == 2){
+		mes .@npc_name$;
+		mes "Desculpe, não sei do que está falando...";
+		emotion(e_swt2);
+		close2;
+		if(	strnpcinfo(NPC_NAME_VISIBLE) == "Marta" || 
+			strnpcinfo(NPC_NAME_VISIBLE) == "Edmundo"){
+			end;
+		}
+		donpcevent(instance_npcname("#spacontrol1") + "::OnStep03");
+		end;
+	}
+	else if('spa_step <= 4){
+		mes .@npc_name$;
+		mes "Se você continuar com isso trará problemas para todos nós...";
+		emotion(e_swt2);
+		close;
+	}
+	else if('spa_step <= 9){
+		mes .@npc_name$;
+		mes "Desculpe não ter lhe ajudado antes.";
+		mes "Eu estava com muito medo.";
+		close;
+	}
+	else if('spa_step == 10){
+		mes .@npc_name$;
+		mes "Obrigado por se arriscar tanto por nós!";
+		mes "Você é nossa última esperança de liberdade!";
+		close;
+	}
+	else if('spa_step == 11){
+		mes .@npc_name$;
+		mes "Seja corajoso, destemido e principalmente determinado. Dessa forma nada poderá lhe deter!";
+		close;
+	}
+	else if('spa_step == 12){
+		mes .@npc_name$;
+		if(	strnpcinfo(NPC_NAME_VISIBLE) == "Marta" || 
+			strnpcinfo(NPC_NAME_VISIBLE) == "Rute"){
+			mes "Parabéns e obrigada por nos salvar.";
+		}
+		else{
+			mes "Obrigado pela imensa ajuda.";
+		}
+		mes "Você é realmente um" + (Sex == 1 ? "" : "a") + " " + (Sex == 1 ? "Herói" : "Heroína") + " absurdamente forte e determinad" + (Sex == 1 ? "o" : "a");
+		emotion(e_ok);
+		close;
+	}
+	end;
+}
+
+1@spa,61,180,4	duplicate(Marta#spa_p1)	Edmundo#spa_p2	4_M_BARMUND
+1@spa,98,139,4	duplicate(Marta#spa_p1)	Eduardo#spa_p3	4_M_DEWOLDMAN
+1@spa,98,106,6	duplicate(Marta#spa_p1)	Rute#spa_p4	4_F_SISTER
+
+1@spa,139,117,4	script	Marisa#spa_p5	4_F_MAYSEL,{
+	.@npc_name$ = "^FF8B00[= " + strnpcinfo(NPC_NAME_VISIBLE) + " =]^000000";
+	if('spa_step < 2){
+		mes .@npc_name$;
+		mes "Você está perdid" + (Sex == 1 ? "o" : "a") + "?";
+		close2;
+		warp(instance_mapname("1@spa"), 42, 213);
+		end;
+	}
+	else if('spa_step == 2){
+		mes .@npc_name$;
+		mes "Olá!";
+		mes "^CCCCCC**sussurra**^000000";
+		mes "Cuidado para quem você faz suas perguntas...";
+		next;
+		select("Você pode me responder, então?");
+		mes .@npc_name$;
+		mes "Não sei do que está falando...";
+		emotion(e_swt2);
+		close;
+	}
+	else if('spa_step == 3){
+		mes .@npc_name$;
+		mes "^CCCCCC**sussurra**^000000";
+		mes "Você é mesmo insistente, heim!?";
+		mes "É melhor cuidar da sua própria vida.";
+		next;
+		mes .@npc_name$;
+		mes "^CCCCCC**sussurra**^000000";
+		mes "Não tem como você conseguir isso sozinho...";
+		mes "O que ele tinha na cabeça???";
+		next;
+		mes .@npc_name$;
+		mes "^CCCCCC**sussurra**^000000";
+		mes "Me diga, você tem certeza que deseja continuar com isso e que pode dar um fim ao nosso sofrimento?";
+		next;
+		if(select("Não tenho certeza:Com certeza") == 1){
+			mes .@npc_name$;
+			mes "^CCCCCC**sussurra**^000000";
+			mes "Então fique quieto e apenas volte para seu mundo.";
+			close;
+		}
+		mes .@npc_name$;
+		mes "^CCCCCC**sussurra**^000000";
+		mes "Nesse caso vou lhe contar o que precisa fazer.";
+		mes "Mas não posso contar na presença desses guardas.";
+		close2;
+		donpcevent(instance_npcname("#spacontrol1") + "::OnStep04");
+		end;
+	}
+	else if('spa_step == 4){
+		mes .@npc_name$;
+		mes "^CCCCCC**sussurra**^000000";
+		mes "Derrote os guardas e depois conversaremos.";
+		close;
+	}
+	else if('spa_step == 5){
+		mes .@npc_name$;
+		mes "Estou realmente impressionada e chego até a sentir esperança!";
+		next;
+		mes .@npc_name$;
+		mes "Talvez você tenha uma chance contra o usurpador do trono.";
+		mes "Mas somente se conseguir encontrar a ^0075E9" + getitemname(Black_Gemstone) + "^000000.";
+		next;
+		mes .@npc_name$;
+		mes "Se você for até a masmorra do castelo vai encontrá-la dentro de uma das caixas.";
+		next;
+		mes .@npc_name$;
+		mes "Mas cuidado, se um dos guardas ver você vasculhando a masmorra irá soar o alarme e você terá que enfrentar todos eles.";
+		next;
+		select("Não se preocupe");
+		mes .@npc_name$;
+		mes "Boa sorte Herói Dimensional!";
+		close2;
+		donpcevent(instance_npcname("#spacontrol1") + "::OnStep06");
+		end;
+	}
+	else if('spa_step <= 7){
+		mes .@npc_name$;
+		mes "Boa sorte Herói Dimensional!";
+		mes "Você é nossa última esperança.";
+		close;
+	}
+	else if('spa_step == 8){
+		if(countitem(Black_Gemstone) < 1){
+			mes .@npc_name$;
+			mes "Não entendo...";
+			mes "Era para a ^0075E9" + getitemname(Black_Gemstone) + "^000000 estar lá...";
+			close;
+		}
+		mes .@npc_name$;
+		mes "Nossa, não sabe como eu fiquei aflita.";
+		mes "Eu pedi a Deus que lhe desse forças para completar essa tarefa.";
+		next;
+		mes .@npc_name$;
+		mes "Agora que você tem a ^0075E9" + getitemname(Black_Gemstone) + "^000000 eu posso usar ela para conjurar um feitiço que irá enfraquecer o usurpador.";
+		next;
+		mes .@npc_name$;
+		mes "Dessa forma você poderá enfrentá-lo com uma chance de vencer!";
+		mes "Vejamos...";
+		next;
+		mes .@npc_name$;
+		mes "Preciso que peque um livro de feitiços na biblioteca ao lado.";
+		close2;
+		delitem(Black_Gemstone, countitem(Black_Gemstone));
+		donpcevent(instance_npcname("#spacontrol1") + "::OnStep09");
+		donpcevent(instance_npcname("Livro de Feitiços#spa") + "::OnEnable");
+		end;
+	}
+	else if('spa_step == 9){
+		if(countitem(Book_Of_Magic) < 1){
+			mes .@npc_name$;
+			mes "Não entendo...";
+			mes "Era para o ^0075E9" + getitemname(Book_Of_Magic) + "^000000 estar lá...";
+			close;
+		}
+		mes .@npc_name$;
+		mes "Eu conheço duas formas de enfraquecer o usurpador.";
+		mes "Qual delas você prefere?";
+		next;
+		'spa_weak_type = select("Físico:Mágico") - 1;
+		mes .@npc_name$;
+		mes "Então temos tudo que precisamos!";
+		mes "Vamos começar!";
+		next;
+		specialeffect(EF_ANGELUS, NPC, instance_npcname(strnpcinfo(NPC_NAME)));
+		sleep2(500);
+		specialeffect(EF_BLESSING, NPC, instance_npcname(strnpcinfo(NPC_NAME)));
+		sleep2(500);
+		specialeffect(EF_GLORIA, NPC, instance_npcname(strnpcinfo(NPC_NAME)));
+		sleep2(500);
+		specialeffect(EF_MAGNIFICAT, NPC, instance_npcname(strnpcinfo(NPC_NAME)));
+		mes .@npc_name$;
+		mes "Pronto!";
+		mes "Consegui neutralizar a magia de imortalidade do usurpador, mas isso não irá durar para sempre.";
+		next;
+		mes .@npc_name$;
+		mes "Você deve enfrentá-lo o mais rápido possível.";
+		mes "E lembre-se, quanto mais tempo levar para derrotá-lo, mais fraca a magia que usei ficará.";
+		next;
+		mes .@npc_name$;
+		mes "Se não conseguir derrotá-lo rápido, a imortalidade dele será restaurada.";
+		next;
+		mes .@npc_name$;
+		mes "Volte ao salão principal e enfrente o usurpador.";
+		mes "Você é nossa última esperança de liberdade!";
+		close2;
+		delitem(Book_Of_Magic, countitem(Book_Of_Magic));
+		donpcevent(instance_npcname("#spacontrol1") + "::OnStep10");
+		end;
+	}
+	else if('spa_step == 10){
+		mes .@npc_name$;
+		mes "Não perca tempo!";
+		mes "Volte ao salão principal e enfrente o usurpador.";
+		mes "Você é nossa última esperança de liberdade!";
+		close;
+	}
+	else if('spa_step == 11){
+		mes .@npc_name$;
+		mes "Seja corajoso, destemido e principalmente determinado. Dessa forma nada poderá lhe deter!";
+		close;
+	}
+	else if('spa_step == 12){
+		mes .@npc_name$;
+		mes "Obrigada por nos salvar.";
+		mes "Você é " + (Sex == 1 ? "meu" : "minha") + " " + (Sex == 1 ? "Herói" : "Heroína") + "!";
+		emotion(e_ok);
+		close;
+	}
+}
+
+1@spa,36,184,6	script	Soldado#spa_s1	4_M_PAY_SOLDIER,{
+	.@npc_name$ = "^FF8B00[= " + strnpcinfo(NPC_NAME_VISIBLE) + " =]^000000";
+	if('spa_step == 0){
+		mes .@npc_name$;
+		mes "Quem é você?";
+		mes "Você será levado até o rei agora mesmo!";
+		close2;
+		warp(instance_mapname("1@spa"), 42, 213);
+		end;
+	}
+	else if('spa_step == 1){
+		mes .@npc_name$;
+		mes "Usurpador?";
+		mes "Que história é essa?";
+		next;
+		select("Então ele é realmente o rei?");
+		mes .@npc_name$;
+		mes "É claro que sim!";
+		emotion(e_an);
+		close2;
+		'spa_questions += 2;
+		setd("'question_" + strnpcinfo(NPC_NAME_HIDDEN), 1);
+		donpcevent(instance_npcname("Soldado#spa_s1") + "::OnAttack");
+		donpcevent(instance_npcname("Soldado#spa_s2") + "::OnAttack");
+		end;
+	}
+	else if('spa_step <= 3){
+		mes .@npc_name$;
+		mes "Não incomode os hóspedes do castelo com perguntas bobas...";
+		emotion(e_an);
+		close;
+	}
+	else if('spa_step == 4){
+		mes .@npc_name$;
+		mes "Já lhe avisamos para ficar na sua!";
+		mes "Mas vejo que prefere da forma mais difícil, 'Herói'...";
+		close2;
+		freeloop(1);
+		for(.@i = 3; .@i <= 9; .@i++){
+			donpcevent(instance_npcname("Soldado#spa_s" + .@i) + "::OnAttack");
+		}
+		freeloop(0);
+		end;
+	}
+	end;
+	
+OnAttack:
+	//sleep(500);
+	getmapxy(.@map$, .@x, .@y, UNITTYPE_NPC);
+	setarray(.@mobs[0],
+		PAYONSOLDIER,
+		PAYONSOLDIER2
+	);
+	.@mob_id = .@mobs[rand(getarraysize(.@mobs))];
+	disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	monster(.@map$, .@x, .@y, "Soldado", .@mob_id, 1, instance_npcname("#spacontrol1") + "::OnMobDead");
+	end;
+}
+
+1@spa,47,184,4	duplicate(Soldado#spa_s1)	Soldado#spa_s2	4_M_PAY_SOLDIER
+1@spa,111,133,4	duplicate(Soldado#spa_s1)	Soldado#spa_s3	4_M_PAY_SOLDIER
+1@spa,127,124,4	duplicate(Soldado#spa_s1)	Soldado#spa_s4	4_M_PAY_SOLDIER
+1@spa,104,126,6	duplicate(Soldado#spa_s1)	Soldado#spa_s5	4_M_PAY_SOLDIER
+1@spa,104,112,6	duplicate(Soldado#spa_s1)	Soldado#spa_s6	4_M_PAY_SOLDIER
+1@spa,127,108,4	duplicate(Soldado#spa_s1)	Soldado#spa_s7	4_M_PAY_SOLDIER
+1@spa,111,106,0	duplicate(Soldado#spa_s1)	Soldado#spa_s8	4_M_PAY_SOLDIER
+1@spa,127,143,4	duplicate(Soldado#spa_s1)	Soldado#spa_s9	4_M_PAY_SOLDIER
+
+1@spa,60,25,0	script	Caixa#spa_c1	4_WOODBOX,{
+	//.@npc_name$ = "^FF8B00[= " + strnpcinfo(NPC_NAME_VISIBLE) + " =]^000000";
+	if('spa_step < 6){
+		dispbottom("Caixa Estranha");
+		end;
+	}
+	else if('spa_step == 6){
+		if(strnpcinfo(NPC_NAME_HIDDEN) != ("spa_c" + 'spa_box_true)){
+			if(rand(100) == 49){
+				Zeny += 100000;
+				dispbottom("Você achou 100.000z");
+			}
+			else{
+				dispbottom("Caixa Vazia");
+			}
+			specialeffect(EF_MAGNUMBREAK, SELF, instance_npcname(strnpcinfo(NPC_NAME)));
+			donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnDisable");
+			donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnAttack");
+		}
+		else{
+			dispbottom("Os guardas apareceram [Derrote todos para poder abrir]");
+			'spa_open_vbox = 1;
+			donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnAttack");
+		}
+		end;
+	}
+	else if('spa_step == 7){
+		specialeffect(EF_MAGNUMBREAK, SELF, instance_npcname(strnpcinfo(NPC_NAME)));
+		donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnDisable");
+		if(strnpcinfo(NPC_NAME_HIDDEN) != ("spa_c" + 'spa_box_true)){
+			end;
+		}
+		if(countitem(Black_Gemstone) > 0){
+			delitem(Black_Gemstone, countitem(Black_Gemstone) - 1);
+		}
+		else{
+			getitem(Black_Gemstone, 1);
+		}
+		donpcevent(instance_npcname("#spacontrol1") + "::OnStep08");
+	}
+	end;
+	
+OnAttack:
+	//sleep(500);
+	setarray(.@mobs[0],
+		PAYONSOLDIER,
+		PAYONSOLDIER2
+	);
+	if('spa_open_vbox == 1){
+		.@qty = 10;
+	}
+	else{
+		.@qty = 6;
+	}
+	getmapxy(.@map$, .@x, .@y, UNITTYPE_NPC, instance_npcname(strnpcinfo(NPC_NAME)));
+	freeloop(1);
+	for(.@i = 0; .@i < .@qty; .@i++){
+		.@mob_id = .@mobs[rand(getarraysize(.@mobs))];
+		.@mobGID = monster(.@map$, .@x + rand(-2, 2), .@y + rand(-2, 2), "Soldado", .@mob_id, 1, instance_npcname("#spacontrol1") + "::OnMobDead");
+		//Recalculando os Stats
+		.@atk_min = getunitdata(.@mobGID, UDT_ATKMIN) >> 1;
+		.@atk_max = getunitdata(.@mobGID, UDT_ATKMAX) >> 1;
+		.@max_hp = getunitdata(.@mobGID, UDT_MAXHP) << 1;
+		//.@max_hp += (.@max_hp * 30 / 100 * 'orc_mob_respawn);
+		setunitdata(.@mobGID, UDT_ATKMIN, .@atk_min);
+		setunitdata(.@mobGID, UDT_ATKMAX, .@atk_max);
+		setunitdata(.@mobGID, UDT_MAXHP, .@max_hp);
+		setunitdata(.@mobGID, UDT_HP, .@max_hp);
+		sleep(2000);
+	}
+	freeloop(0);
+	end;
+
+OnDisable:
+	disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+	
+OnEnable:
+	enablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+}
+
+1@spa,21,24,4	duplicate(Caixa#spa_c1)	Caixa#spa_c2	4_WOODBOX
+1@spa,22,44,4	duplicate(Caixa#spa_c1)	Caixa#spa_c3	4_WOODBOX
+1@spa,31,50,4	duplicate(Caixa#spa_c1)	Caixa#spa_c4	4_WOODBOX
+1@spa,36,59,4	duplicate(Caixa#spa_c1)	Caixa#spa_c5	4_WOODBOX
+1@spa,58,62,4	duplicate(Caixa#spa_c1)	Caixa#spa_c6	4_WOODBOX
+1@spa,60,62,4	duplicate(Caixa#spa_c1)	Caixa#spa_c7	4_WOODBOX
+1@spa,62,62,4	duplicate(Caixa#spa_c1)	Caixa#spa_c8	4_WOODBOX
+1@spa,48,62,4	duplicate(Caixa#spa_c1)	Caixa#spa_c9	4_WOODBOX
+1@spa,23,56,4	duplicate(Caixa#spa_c1)	Caixa#spa_c10	4_WOODBOX
+1@spa,62,25,4	duplicate(Caixa#spa_c1)	Caixa#spa_c11	4_WOODBOX
+1@spa,50,33,4	duplicate(Caixa#spa_c1)	Caixa#spa_c12	4_WOODBOX
+1@spa,62,42,4	duplicate(Caixa#spa_c1)	Caixa#spa_c13	4_WOODBOX
+1@spa,50,36,4	duplicate(Caixa#spa_c1)	Caixa#spa_c14	4_WOODBOX
+1@spa,25,24,4	duplicate(Caixa#spa_c1)	Caixa#spa_c15	4_WOODBOX
+1@spa,22,38,4	duplicate(Caixa#spa_c1)	Caixa#spa_c16	4_WOODBOX
+
+1@spa,137,94,0	script	Livro de Feitiços#spa	HIDDEN_NPC,{
+	if('spa_step != 9){
+		end;
+	}
+	if(countitem(Book_Of_Magic) > 1){
+		delitem(Book_Of_Magic, countitem(Book_Of_Magic) - 1);
+	}
+	if(countitem(Book_Of_Magic) == 0){
+		getitem(Book_Of_Magic, 1);
+	}
+	donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnDisable");
+	end;
+	
+OnInstanceInit:
+OnDisable:
+	disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+	
+OnEnable:
+	enablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+}
+
+1@spa,41,217,6	script	Rubert#spav	4_M_RUSKING,{
+	.@npc_name$ = "^FF8B00[= Rubert =]^000000";
+	if('spa_step < 12){
+		donpcevent(instance_npcname(strnpcinfo(NPC_NAME)) + "::OnDisable");
+		end;
+	}
+	mes .@npc_name$;
+	mes "Olá ^0075E9" + strcharinfo(PC_NAME) + "^000000!";
+	mes "Recebi uma mensagem de minha filha ^0075E9Marisa^000000 me contando que você derrotou o Impostor.";
+	next;
+	mes .@npc_name$;
+	mes "Isso foi incrível!";
+	mes "Você se mostrou um" + (Sex == 1 ? "" : "a") + " " + (Sex == 1 ? "Herói" : "Heroína") + " absurdamente forte e determinad" + (Sex == 1 ? "o" : "a");
+	next;
+	mes .@npc_name$;
+	mes "Deixe-me mostrar a minha gratidão por ter salvo o nosso reino.";
+	next;
+	if(qdo_inst_imp == 0){
+		mes .@npc_name$;
+		mes "Em minha viagem para sua dimensão, eu encontrei com um mercador muito interessante.";
+		next;
+		mes .@npc_name$;
+		mes "Gostaria de lhe presentear com um dos itens que comprei dele.";
+		next;
+		getitem(L_Magestic_Goat, 1);
+		.@bxp = 'spa_mode == 1 ? 770000 : 990000;
+		.@jxp = 'spa_mode == 1 ? 1000000 : 1500000;
+		qdo_inst_imp = 1;
+	}
+	else{
+		mes .@npc_name$;
+		mes "Sei que não é muito, mas desejo lhe presentear com algumas moedas da sua dimensão, que eu consegui enquanto estava por lá.";
+		next;
+		getitem($@qdo_coin_town, ('spa_mode == 1 ? 5 : 3));
+		.@bxp = 'spa_mode == 1 ? 550000 : 770000;
+		.@jxp = 'spa_mode == 1 ? 550000 : 770000;
+	}
+	BaseExp += .@bxp;
+	dispbottom("Você recebeu " + .@bxp + " de Exp. de Base");
+	JobExp += .@jxp;
+	dispbottom("Você recebeu " + .@jxp + " de Exp. de Classe");
+	mes .@npc_name$;
+	mes "Espero que lhe seja útil.";
+	mes "Também providenciei a sua volta para casa.";
+	mes "Boa sorte e muito obrigado pela sua ajuda.";
+	close2;
+	setpcblock(PCBLOCK_MOVE, 0);
+	warp("geffen", 120, 63);
+	end;
+
+OnInstanceInit:
+OnDisable:
+	disablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+	
+OnEnable:
+	enablenpc(instance_npcname(strnpcinfo(NPC_NAME)));
+	end;
+}
